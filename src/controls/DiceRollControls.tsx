@@ -21,9 +21,8 @@ import { useDiceRollStore } from "../dice/store";
 import { DiceResults } from "./DiceResults";
 import { getDiceToRoll, getPickedRoll, useDiceControlsStore } from "./store";
 import { countRuleLabel } from "../types/Dice";
+import { getPushDice } from "../helpers/getRollOutcome";
 import { DiceType } from "../types/DiceType";
-import { useDiceHistoryStore } from "./history";
-import { Die } from "../types/Die";
 import { sendRollError } from "../api/protocol";
 import { keepLabel, useSettingsStore } from "../settings/store";
 
@@ -110,7 +109,6 @@ function DicePickedControls() {
     (state) => state.resetDiceCounts
   );
 
-  const pushRecentRoll = useDiceHistoryStore((state) => state.pushRecentRoll);
 
   const staged = useDiceControlsStore((state) => state.stagedRequest);
   const setStaged = useDiceControlsStore((state) => state.setStagedRequest);
@@ -137,21 +135,6 @@ function DicePickedControls() {
         speedMultiplier
       );
       endStaged();
-
-      const rolledDiceById: Record<string, Die> = {};
-      for (const id of Object.keys(counts)) {
-        if (!(id in rolledDiceById)) {
-          rolledDiceById[id] = diceById[id];
-        }
-      }
-      pushRecentRoll({
-        advantage,
-        advantageCount,
-        count: diceCount,
-        counts,
-        bonus,
-        diceById: rolledDiceById,
-      });
 
       handleReset();
     }
@@ -354,7 +337,8 @@ function DicePickedControls() {
             color="white"
             variant="h6"
           >
-            Count {countRuleLabel(diceCount)}
+            {Object.values(counts).reduce((sum, n) => sum + n, 0) === 1 ? "Target" : "Count"}{" "}
+            {countRuleLabel(diceCount)}
           </Typography>
         )}
       </Stack>
@@ -385,6 +369,8 @@ function FinishedRollControls() {
   const roll = useDiceRollStore((state) => state.roll);
   const clearRoll = useDiceRollStore((state) => state.clearRoll);
   const reroll = useDiceRollStore((state) => state.reroll);
+  const push = useDiceRollStore((state) => state.push);
+  const pushes = useSettingsStore((state) => state.room.pushes);
 
   const rollValues = useDiceRollStore((state) => state.rollValues);
   const finishedRollValues = useMemo(() => {
@@ -398,6 +384,10 @@ function FinishedRollControls() {
   }, [rollValues]);
 
   const [resultsExpanded, setResultsExpanded] = useState(false);
+  const pushDice = useMemo(
+    () => (pushes && roll ? getPushDice(roll, finishedRollValues) : null),
+    [pushes, roll, finishedRollValues]
+  );
 
   return (
     <>
@@ -419,14 +409,29 @@ function FinishedRollControls() {
           width="100%"
           alignItems="start"
         >
-          <Tooltip title="Reroll" sx={{ pointerEvents: "all" }}>
-            <IconButton
-              onClick={() => reroll()}
-              sx={{ pointerEvents: "all", color: "white" }}
-            >
-              <RerollDiceIcon />
-            </IconButton>
-          </Tooltip>
+          <Stack direction="row" alignItems="center" gap={0.5}>
+            <Tooltip title="Reroll" sx={{ pointerEvents: "all" }}>
+              <IconButton
+                onClick={() => reroll()}
+                sx={{ pointerEvents: "all", color: "white" }}
+              >
+                <RerollDiceIcon />
+              </IconButton>
+            </Tooltip>
+            {pushDice && (
+              <Tooltip title="Push: roll what failed again (once)" sx={{ pointerEvents: "all" }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => push(pushDice)}
+                  sx={{ pointerEvents: "all", color: "white", minWidth: 0 }}
+                >
+                  Push
+                </Button>
+              </Tooltip>
+            )}
+          </Stack>
           <Tooltip title="Clear" sx={{ pointerEvents: "all" }}>
             <IconButton
               onClick={() => clearRoll()}

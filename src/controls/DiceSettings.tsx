@@ -17,6 +17,7 @@ import { useDiceControlsStore } from "./store";
 
 export function DiceSettings() {
   const room = useSettingsStore((state) => state.room);
+  const isGm = useSettingsStore((state) => state.isGm);
   const othersRolls = useSettingsStore((state) => state.othersRolls);
   const setOthersRolls = useSettingsStore((state) => state.setOthersRolls);
   const autoOpen = useSettingsStore((state) => state.autoOpen);
@@ -63,7 +64,32 @@ export function DiceSettings() {
               <ToggleButton value="ADVANTAGE">Adv / Dis</ToggleButton>
               <ToggleButton value="BOON">Boon / Bane</ToggleButton>
             </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary">
+              {room.keepNames === "BOON"
+                ? "Roll-under: a natural 1 on a d20 is a crit, 20 a fumble"
+                : "Roll-over: a natural 20 on a d20 is a crit, 1 a fumble"}
+            </Typography>
           </Stack>
+          {isGm && (
+            <Stack gap={0.5}>
+              <Typography variant="caption" color="text.secondary">
+                Pushes (whole room, GM only)
+              </Typography>
+              <ToggleButtonGroup
+                size="small"
+                value={room.pushes ? "ON" : "OFF"}
+                exclusive
+                fullWidth
+                onChange={(_, value) => value && saveRoomSettings({ ...room, pushes: value === "ON" })}
+              >
+                <ToggleButton value="OFF">Off</ToggleButton>
+                <ToggleButton value="ON">On</ToggleButton>
+              </ToggleButtonGroup>
+              <Typography variant="caption" color="text.secondary">
+                Push re-rolls what failed, once: a pool's misses, or a failed roll against a target
+              </Typography>
+            </Stack>
+          )}
           <Stack gap={0.5}>
             <Typography variant="caption" color="text.secondary">
               Auto-open dice panel (just you)

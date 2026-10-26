@@ -11,6 +11,8 @@ import { PluginGate } from "./plugin/PluginGate";
 import { DiceRollSync } from "./plugin/DiceRollSync";
 import { RollRequestListener } from "./api/RollRequestListener";
 import { RollResultReporter } from "./api/RollResultReporter";
+import { HistoryRecorder } from "./history/HistoryRecorder";
+import { RoomSettingsSync } from "./settings/RoomSettingsSync";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -21,6 +23,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <PopoverTrays />
         <RollRequestListener />
         <RollResultReporter />
+        <HistoryRecorder />
+        <RoomSettingsSync />
         <DiceRollSync />
       </PluginGate>
     </PluginThemeProvider>

@@ -97,6 +97,36 @@ export function meetsCount(value: number, { op, target }: CountRule) {
   }
 }
 
+/**
+ * Which natural faces are critical, as a face ("1") or an inclusive bound
+ * (">18", "<3"), the way the sheets send them
+ */
+export interface CritRule {
+  success?: string;
+  failure?: string;
+}
+
+export function meetsCrit(face: number, point: string | undefined) {
+  if (!point) {
+    return false;
+  }
+  const match = /^\s*([<>]=?)?\s*(\d+)\s*$/.exec(point);
+  if (!match) {
+    return false;
+  }
+  const bound = Number(match[2]);
+  switch (match[1]) {
+    case ">":
+    case ">=":
+      return face >= bound;
+    case "<":
+    case "<=":
+      return face <= bound;
+    default:
+      return face === bound;
+  }
+}
+
 /** How a count rule reads, e.g. "≥ 6" */
 export function countRuleLabel({ op, target }: CountRule) {
   const symbol = { "=": "=", ">": ">", ">=": "≥", "<": "<", "<=": "≤" }[op];

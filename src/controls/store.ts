@@ -156,9 +156,6 @@ export const useDiceControlsStore = create<DiceControlsState>()(
         state.diceAdvantage = advantage;
         if (advantage === null) {
           state.diceAdvantageCount = 1;
-        } else {
-          // A count of successes looks at every die, so it can't keep only one
-          state.diceCount = null;
         }
       });
     },
@@ -170,9 +167,8 @@ export const useDiceControlsStore = create<DiceControlsState>()(
     setDiceCount(count) {
       set((state) => {
         state.diceCount = count;
+        // Counted dice have no bonus; a keep is fine (a boon against a target counts the kept die)
         if (count) {
-          state.diceAdvantage = null;
-          state.diceAdvantageCount = 1;
           state.diceBonus = 0;
         }
       });

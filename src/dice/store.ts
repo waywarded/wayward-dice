@@ -10,6 +10,8 @@ import { DiceTransform } from "../types/DiceTransform";
 import { getRandomDiceThrow } from "../helpers/DiceThrower";
 import { generateDiceId } from "../helpers/generateDiceId";
 import { DiceThrow } from "../types/DiceThrow";
+import { defaultCrit } from "../helpers/getRollOutcome";
+import { useSettingsStore } from "../settings/store";
 
 interface DiceRollState {
   roll: DiceRoll | null;
@@ -39,6 +41,8 @@ interface DiceRollState {
   /** Reroll select ids of dice or reroll all dice by passing `undefined` */
   reroll: (ids?: string[], manualThrows?: Record<string, DiceThrow>) => void;
   finishDieRoll: (id: string, number: number, transform: DiceTransform) => void;
+  /** Roll the given dice again and mark the roll pushed (once per roll) */
+  push: (ids: string[]) => void;
 }
 
 export const useDiceRollStore = create<DiceRollState>()(
@@ -49,7 +53,12 @@ export const useDiceRollStore = create<DiceRollState>()(
     rollThrows: {},
     startRoll: (roll, speedMultiplier?: number) =>
       set((state) => {
-        state.roll = roll;
+        // Crit faces are fixed here so every client (and the log) reads the roll the same way
+        const crit =
+          roll.crit ??
+          roll.request?.crit ??
+          defaultCrit(roll, useSettingsStore.getState().room.keepNames === "BOON");
+        state.roll = crit ? { ...roll, crit } : roll;
         state.rollValues = {};
         state.rollTransforms = {};
         state.rollThrows = {};
@@ -86,6 +95,14 @@ export const useDiceRollStore = create<DiceRollState>()(
             state.rollTransforms,
             state.rollThrows
           );
+        }
+      });
+    },
+    push: (ids) => {
+      set((state) => {
+        if (state.roll && !state.roll.pushed) {
+          state.roll.pushed = true;
+          rerollDraft(state.roll, ids, undefined, state.rollValues, state.rollTransforms, state.rollThrows);
         }
       });
     },

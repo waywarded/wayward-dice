@@ -42,6 +42,12 @@ describe("stageRequest", () => {
     expect(controls.stagedRequest?.hiddenBefore).toBe(false);
   });
 
+  it("fills in a roll against a target with its boons", () => {
+    expect(stage("3d20kl1<=12")).toBeNull();
+    const controls = useDiceControlsStore.getState();
+    expect([controls.diceAdvantage, controls.diceAdvantageCount, controls.diceCount]).toEqual(["DISADVANTAGE", 2, { op: "<=", target: 12 }]);
+  });
+
   it("refuses what the panel can't show", () => {
     expect(stage("1d6+2, 1d10, 1d10")).toMatch(/several parts/);
     expect(stage("d66")).toMatch(/d66/);

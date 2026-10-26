@@ -46,8 +46,9 @@ describe("parseNotation", () => {
     expect(() => parseNotation("21d6")).toThrow("Between 1 and 20");
     expect(() => parseNotation("5")).toThrow("No dice");
     expect(() => parseNotation("d20-d4")).toThrow("Subtracting");
-    expect(() => parseNotation("4d6+1=6")).toThrow("plain dice only");
-    expect(() => parseNotation("2d20kh1=6")).toThrow("plain dice only");
+    expect(() => parseNotation("4d6+1=6")).toThrow("without a bonus or d66");
+    expect(parseNotation("2d20kh1<=12").parts[0].count).toEqual({ op: "<=", target: 12 });
+    expect(() => parseNotation("d66=6")).toThrow("without a bonus or d66");
     expect(() => parseNotation("d6,")).toThrow("Can't read");
     expect(() => parseNotation("12d6, 12d6")).toThrow("At most 20 dice");
     expect(() => parseNotation("4d6==6")).toThrow("Can't read");

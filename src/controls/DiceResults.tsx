@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 
 import { getRollSummary } from "../helpers/getRollSummary";
+import { getRollOutcome } from "../helpers/getRollOutcome";
 import { DiceRoll } from "../types/DiceRoll";
 import { Die, isDie } from "../types/Die";
 import { Dice, isDice, meetsCount } from "../types/Dice";
@@ -29,9 +30,15 @@ export function DiceResults({
   expanded: boolean;
   onExpand: (expand: boolean) => void;
 }) {
-  const finalValue = useMemo(() => {
-    return getRollSummary(diceRoll, rollValues);
-  }, [diceRoll, rollValues]);
+  const outcome = useMemo(() => getRollOutcome(diceRoll, rollValues), [diceRoll, rollValues]);
+  const finalValue = outcome?.summary ?? null;
+  // Green for a success or crit, red for a failure or fumble
+  const tone =
+    outcome?.crit === "critical" || outcome?.success === true
+      ? "#7ee2a8"
+      : outcome?.crit === "fumble" || outcome?.success === false
+        ? "#ff8a80"
+        : "white";
 
   return (
     <Stack alignItems="center" maxHeight="calc(100vh - 100px)">
@@ -44,7 +51,7 @@ export function DiceResults({
           onClick={() => onExpand(!expanded)}
           color="inherit"
         >
-          <Typography variant="h4" color="white" noWrap>
+          <Typography variant="h4" color={tone} noWrap>
             {finalValue}
           </Typography>
         </Button>

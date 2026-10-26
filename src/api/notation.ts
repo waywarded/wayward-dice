@@ -115,8 +115,9 @@ function parsePart(part: string, notation: string): ParsedPart {
   if (groups.length === 0) {
     throw new Error(`No dice in "${notation}"`);
   }
-  if (count && (bonus !== 0 || groups.some((g) => g.keep || g.d66))) {
-    throw new Error(`Counting successes takes plain dice only ("${notation}")`);
+  // A keep counts its kept die: 2d20kl1<=12 is a d20 with a boon against a target
+  if (count && (bonus !== 0 || groups.some((g) => g.d66))) {
+    throw new Error(`Counting successes takes dice without a bonus or d66 ("${notation}")`);
   }
   return { groups, bonus, ...(count ? { count } : {}) };
 }

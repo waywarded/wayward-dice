@@ -6,7 +6,7 @@ import { DiceSetPicker } from "./DiceSetPicker";
 import { DicePicker } from "./DicePicker";
 import { DiceExtras } from "./DiceExtras";
 import { DiceHidden } from "./DiceHidden";
-import { DiceHistory } from "./DiceHistory";
+import { RoomHistory } from "../history/RoomHistory";
 import { DiceSettings } from "./DiceSettings";
 
 import { PluginGate } from "../plugin/PluginGate";
@@ -15,6 +15,7 @@ import { PartyTrays } from "../plugin/PartyTrays";
 import { ResizeObserver as PluginResizeObserver } from "../plugin/ResizeObserver";
 import { PanelApiBridge } from "../api/PanelApiBridge";
 import { RollResultReporter } from "../api/RollResultReporter";
+import { HistoryRecorder } from "../history/HistoryRecorder";
 import { RoomSettingsSync } from "../settings/RoomSettingsSync";
 
 export function Sidebar() {
@@ -34,7 +35,9 @@ export function Sidebar() {
         <Divider flexItem sx={{ mx: 1 }} />
         <DiceHidden />
         <DiceExtras />
-        <DiceHistory />
+        <PluginGate>
+          <RoomHistory />
+        </PluginGate>
         <DiceSettings />
         <PluginGate>
           <Divider flexItem sx={{ mx: 1 }} />
@@ -42,6 +45,7 @@ export function Sidebar() {
           <PanelApiBridge />
           <RoomSettingsSync />
           <RollResultReporter />
+          <HistoryRecorder />
           <PartyTrays />
           <PluginResizeObserver />
         </PluginGate>

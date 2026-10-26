@@ -17,7 +17,7 @@ export interface RollRequest {
   notation: string;
   label?: string;
   visibility?: "all" | "gm";
-  /** Critical faces ("1", ">18", "<3"); accepted, not shown yet */
+  /** Critical faces of the kept die ("1", ">18", "<3"); without them a single d20 gets the room's defaults */
   crit?: { success?: string; failure?: string };
   /** "roll" throws now; "stage" opens the dice panel filled in, and the player presses Roll */
   mode?: "roll" | "stage";
@@ -29,6 +29,7 @@ export interface RollRequestMeta {
   source: string;
   label?: string;
   notation: string;
+  crit?: { success?: string; failure?: string };
 }
 
 export interface RollResult {
@@ -43,6 +44,12 @@ export interface RollResult {
   successes?: number;
   /** Only for a roll in comma parts, one per part */
   parts?: RollPartResult[];
+  /** Only for a roll against a target (`d20<=12`) */
+  success?: boolean;
+  /** When the kept die shows a critical face */
+  crit?: "critical" | "fumble";
+  /** Sent again after the player pushed the roll */
+  pushed?: boolean;
   hidden: boolean;
   /** True when a staged roll was changed in the panel before rolling */
   modified?: boolean;

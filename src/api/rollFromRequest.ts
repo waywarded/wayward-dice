@@ -36,6 +36,7 @@ export function rollFromRequest(request: RollRequest, parsed: ParsedNotation) {
       source: request.source,
       label: request.label,
       notation: request.notation,
+      ...(request.crit ? { crit: request.crit } : {}),
     },
   });
 }
@@ -99,6 +100,7 @@ export function stageRequest(request: RollRequest, parsed: ParsedNotation): stri
       source: request.source,
       label: request.label,
       notation: request.notation,
+      ...(request.crit ? { crit: request.crit } : {}),
     },
     counts: staged.diceCounts,
     bonus: staged.diceBonus,

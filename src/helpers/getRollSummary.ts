@@ -1,21 +1,10 @@
-import { Dice, isDice } from "../types/Dice";
-import { getCombinedDiceValue } from "./getCombinedDiceValue";
+import { CritRule, Dice } from "../types/Dice";
+import { getRollOutcome } from "./getRollOutcome";
 
 /**
- * A roll's result as people read it: "17", "2 successes", or each part of a
- * comma roll ("8 · 3 · 9"). Null until every die has a value.
+ * A roll's result as people read it: "17", "2 successes", "8 · Success", or each
+ * part of a comma roll ("8 · 3 · 9"). Null until every die has a value.
  */
-export function getRollSummary(dice: Dice, values: Record<string, number>): string | null {
-  if (dice.combination === "PARTS") {
-    const parts = dice.dice.map((part) => (isDice(part) ? getRollSummary(part, values) : null));
-    return parts.some((part) => part === null) ? null : parts.join(" · ");
-  }
-  const value = getCombinedDiceValue(dice, values);
-  if (value === null) {
-    return null;
-  }
-  if (dice.combination === "COUNT") {
-    return value === 1 ? "1 success" : `${value} successes`;
-  }
-  return `${value}`;
+export function getRollSummary(dice: Dice & { crit?: CritRule }, values: Record<string, number>): string | null {
+  return getRollOutcome(dice, values)?.summary ?? null;
 }

@@ -7,16 +7,19 @@ export type KeepNames = "ADVANTAGE" | "BOON";
 
 export interface RoomSettings {
   keepNames: KeepNames;
+  /** The GM lets players push a roll once: re-roll what failed */
+  pushes: boolean;
 }
 
 export const ROOM_SETTINGS_KEY = getPluginId("settings");
 
-export const DEFAULT_ROOM_SETTINGS: RoomSettings = { keepNames: "ADVANTAGE" };
+export const DEFAULT_ROOM_SETTINGS: RoomSettings = { keepNames: "ADVANTAGE", pushes: false };
 
 export function parseRoomSettings(value: unknown): RoomSettings {
   const v = (value ?? {}) as Partial<RoomSettings>;
   return {
     keepNames: v.keepNames === "BOON" ? "BOON" : "ADVANTAGE",
+    pushes: v.pushes === true,
   };
 }
 
@@ -50,6 +53,7 @@ function loadAutoOpen(): AutoOpen {
 interface SettingsState {
   room: RoomSettings;
   setRoom: (room: RoomSettings) => void;
+  isGm: boolean;
   /** Per player, shared by the panel and the popover through localStorage */
   othersRolls: OthersRolls;
   setOthersRolls: (value: OthersRolls) => void;
@@ -60,6 +64,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()((set) => ({
   room: DEFAULT_ROOM_SETTINGS,
   setRoom: (room) => set({ room }),
+  isGm: false,
   othersRolls: loadOthersRolls(),
   setOthersRolls: (othersRolls) => {
     try {

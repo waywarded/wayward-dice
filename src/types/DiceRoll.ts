@@ -1,4 +1,4 @@
-import { Dice } from "./Dice";
+import { CritRule, Dice } from "./Dice";
 import type { RollRequestMeta } from "../api/protocol";
 
 /**
@@ -11,4 +11,8 @@ export interface DiceRoll extends Dice {
   request?: RollRequestMeta;
   /** A staged request the player changed before rolling */
   modified?: boolean;
+  /** Critical faces of the kept die, fixed when the roll starts so every client agrees */
+  crit?: CritRule;
+  /** Pushed once: the failed dice were rolled again */
+  pushed?: boolean;
 }

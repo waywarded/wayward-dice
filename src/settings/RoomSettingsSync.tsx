@@ -10,6 +10,10 @@ export function RoomSettingsSync() {
     OBR.room.getMetadata().then(apply);
     return OBR.room.onMetadataChange(apply);
   }, []);
+  useEffect(() => {
+    OBR.player.getRole().then((role) => useSettingsStore.setState({ isGm: role === "GM" }));
+    return OBR.player.onChange((player) => useSettingsStore.setState({ isGm: player.role === "GM" }));
+  }, []);
   return null;
 }
 
