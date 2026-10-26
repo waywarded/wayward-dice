@@ -2,7 +2,7 @@
   "name": "Wayward Dice",
   "version": "0.1.0",
   "manifest_version": 1,
-  "author": "Wayward Distractions (fork of Owlbear Rodeo's Dice)",
+  "author": "Wayward Distractions",
   "homepage_url": "https://github.com/waywarded/wayward-dice",
   "icon": "/logo.png",
   "description": "3D dice with a roll API for character sheets. A fork of Owlbear Rodeo's Dice.",
