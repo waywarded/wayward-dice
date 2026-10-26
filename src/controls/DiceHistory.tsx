@@ -16,6 +16,7 @@ import { DicePreview } from "../previews/DicePreview";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import { getDiceToRoll, useDiceControlsStore } from "./store";
+import { keepLabel, useSettingsStore } from "../settings/store";
 
 export function DiceHistory() {
   const startRoll = useDiceRollStore((state) => state.startRoll);
@@ -28,7 +29,12 @@ export function DiceHistory() {
   );
 
   function handleRoll(roll: RecentRoll) {
-    const dice = getDiceToRoll(roll.counts, roll.advantage, roll.diceById);
+    const dice = getDiceToRoll(
+      roll.counts,
+      roll.advantage,
+      roll.diceById,
+      roll.advantageCount
+    );
     startRoll({ dice, bonus: roll.bonus, hidden });
     resetDiceCounts();
     setBonus(0);
@@ -105,6 +111,7 @@ function RecentRollChip({
   onRoll: () => void;
   onDelete: () => void;
 }) {
+  const keepNames = useSettingsStore((state) => state.room.keepNames);
   return (
     <Chip
       sx={{
@@ -140,7 +147,9 @@ function RecentRollChip({
             </span>
           )}
           {recentRoll.advantage !== null && (
-            <span>{recentRoll.advantage === "ADVANTAGE" ? "Adv" : "Dis"}</span>
+            <span>
+              {keepLabel(recentRoll.advantage, recentRoll.advantageCount ?? 1, keepNames)}
+            </span>
           )}
         </Stack>
       }

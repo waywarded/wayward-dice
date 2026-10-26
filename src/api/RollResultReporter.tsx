@@ -7,9 +7,12 @@ import { sendRollResult } from "./protocol";
 /**
  * Sends `{source}/roll-result` when a requested roll in this frame's dice store
  * comes to rest. Mounted wherever rolls are thrown (the panel and the popover).
+ * Only rolls thrown in this frame count: one handed over already finished was
+ * reported by the frame that threw it.
  */
 export function RollResultReporter() {
   useEffect(() => {
+    const thrown = new Set<string>();
     const reported = new Set<string>();
     return useDiceRollStore.subscribe((state) => {
       const roll = state.roll;
@@ -20,6 +23,10 @@ export function RollResultReporter() {
       const dice = getDieFromDice(roll);
       const values = dice.map((die) => state.rollValues[die.id]);
       if (values.length === 0 || values.some((value) => value === null || value === undefined)) {
+        thrown.add(request.rollId);
+        return;
+      }
+      if (!thrown.has(request.rollId)) {
         return;
       }
       reported.add(request.rollId);

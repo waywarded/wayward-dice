@@ -7,6 +7,7 @@ export interface RecentRoll {
   counts: DiceCounts;
   bonus: number;
   advantage: Advantage;
+  advantageCount?: number;
   diceById: Record<string, Die>;
 }
 

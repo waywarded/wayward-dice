@@ -1,13 +1,32 @@
 import { getPluginId } from "../plugin/getPluginId";
 import { RollRequest } from "./protocol";
+import type { DiceRoll } from "../types/DiceRoll";
+import type { DiceThrow } from "../types/DiceThrow";
+import type { DiceTransform } from "../types/DiceTransform";
+
+/** A finished roll, handed from the popover to the panel so it shows there too */
+export interface FinishedRollState {
+  roll: DiceRoll;
+  rollValues: Record<string, number>;
+  rollTransforms: Record<string, DiceTransform>;
+  rollThrows: Record<string, DiceThrow>;
+}
 
 /**
  * The background popover and the dice panel (action popover) are separate
  * iframes on one origin; they talk over a BroadcastChannel.
  */
 export type PanelMessage =
+  // popover → panel: run a request; panel → popover: done, or why not
   | { type: "roll" | "stage"; request: RollRequest }
-  | { type: "ack"; rollId: string; error?: string };
+  | { type: "ack"; rollId: string; error?: string }
+  // panel → popover: a staged request was rolled or cleared
+  | { type: "staged-done"; rollId: string }
+  // popover → panel: the panel closed with a request still staged
+  | { type: "cancel-staged" }
+  // panel → popover: "what did you roll?"; popover → panel: its last finished roll
+  | { type: "roll-state?" }
+  | { type: "roll-state"; state: FinishedRollState };
 
 const CHANNEL = getPluginId("panel");
 
@@ -15,6 +34,13 @@ export function openPanelChannel(onMessage: (message: PanelMessage) => void) {
   const channel = new BroadcastChannel(CHANNEL);
   channel.onmessage = (event) => onMessage(event.data as PanelMessage);
   return channel;
+}
+
+/** Post one message without listening for answers */
+export function postToPanelChannel(message: PanelMessage) {
+  const channel = new BroadcastChannel(CHANNEL);
+  channel.postMessage(message);
+  channel.close();
 }
 
 /**

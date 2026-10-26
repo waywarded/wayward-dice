@@ -12,7 +12,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "check": "tsc && vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -42,6 +44,7 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.2",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4"
+    "vite": "^8.3.4",
+    "vitest": "^3.2.7"
   }
 }

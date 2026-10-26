@@ -6,6 +6,7 @@ import Box from "@mui/material/Box";
 import { PopoverTray } from "./PopoverTray";
 import { getPluginId } from "./getPluginId";
 import { SelfPopoverTray } from "./SelfPopoverTray";
+import { useSettingsStore } from "../settings/store";
 
 export function PopoverTrays() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -49,19 +50,25 @@ export function PopoverTrays() {
     }
   }
 
-  // Hide popover when no trays are visible
-  const hidden = visibleTrays.length === 0;
+  // Hide popover when no trays are visible, and keep it small for results only
+  const othersRolls = useSettingsStore((state) => state.othersRolls);
+  const size =
+    visibleTrays.length === 0
+      ? "NONE"
+      : othersRolls === "RESULT" && !visibleTrays.includes("self")
+        ? "RESULT"
+        : "TRAY";
   useEffect(() => {
-    if (hidden) {
+    if (size === "NONE") {
       OBR.popover.setHeight(getPluginId("popover"), 0);
       OBR.popover.setWidth(getPluginId("popover"), 0);
     } else {
-      // Height = Tray + Name + Bottom
-      OBR.popover.setHeight(getPluginId("popover"), 298);
+      // Height = Tray (or result line) + Name + Bottom
+      OBR.popover.setHeight(getPluginId("popover"), size === "RESULT" ? 56 : 298);
       // Width = Tray + Right
       OBR.popover.setWidth(getPluginId("popover"), 266);
     }
-  }, [hidden]);
+  }, [size]);
 
   return (
     <Box

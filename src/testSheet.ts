@@ -19,6 +19,11 @@ const requests: {
   { label: "Percentile", notation: "d100" },
   { label: "Stage: Swords +3", notation: "d20+3", mode: "stage" },
   { label: "Stage: Bane", notation: "2d20kl1", mode: "stage" },
+  { label: "Swords, 2 boons", notation: "3d20kl1" },
+  { label: "Stage: 2 boons", notation: "3d20kl1", mode: "stage" },
+  { label: "Stage: GM ambush", notation: "d20", visibility: "gm", mode: "stage" },
+  { label: "Oracle", notation: "d66" },
+  { label: "Big pool", notation: "8d6" },
   { label: "Bad notation", notation: "3d7" },
 ];
 

@@ -65,6 +65,8 @@ function combination(dice: Dice) {
     return "<";
   } else if (dice.combination === "NONE") {
     return ",";
+  } else if (dice.combination === "D66") {
+    return "|";
   } else {
     return "+";
   }
@@ -73,7 +75,7 @@ function combination(dice: Dice) {
 function sortDice(
   die: Die[],
   rollValues: Record<string, number>,
-  combination: "HIGHEST" | "LOWEST" | "SUM" | "NONE" | undefined
+  combination: Dice["combination"]
 ) {
   return die.sort((a, b) => {
     const aValue = rollValues[a.id];

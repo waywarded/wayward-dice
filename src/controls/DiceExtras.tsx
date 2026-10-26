@@ -10,12 +10,16 @@ import { DieBonus } from "./DieBonus";
 import { DieAdvantage } from "./DieAdvantage";
 import { useDiceControlsStore } from "./store";
 import { useDiceRollStore } from "../dice/store";
+import { useSettingsStore } from "../settings/store";
 
 export function DiceExtras() {
   const bonus = useDiceControlsStore((state) => state.diceBonus);
   const setBonus = useDiceControlsStore((state) => state.setDiceBonus);
   const advantage = useDiceControlsStore((state) => state.diceAdvantage);
   const setAdvantage = useDiceControlsStore((state) => state.setDiceAdvantage);
+  const advantageCount = useDiceControlsStore((state) => state.diceAdvantageCount);
+  const setAdvantageCount = useDiceControlsStore((state) => state.setDiceAdvantageCount);
+  const room = useSettingsStore((state) => state.room);
 
   const clearRoll = useDiceRollStore((state) => state.clearRoll);
   const roll = useDiceRollStore((state) => state.roll);
@@ -37,7 +41,11 @@ export function DiceExtras() {
 
   return (
     <>
-      <Tooltip title="Bonus" placement="top" disableInteractive>
+      <Tooltip
+        title={room.keepNames === "BOON" ? "Bonus and boons" : "Bonus and advantage"}
+        placement="top"
+        disableInteractive
+      >
         <IconButton
           aria-label="more"
           id="more-button"
@@ -86,8 +94,14 @@ export function DiceExtras() {
           <Divider variant="middle" />
           <DieAdvantage
             advantage={advantage}
+            count={advantageCount}
+            names={room.keepNames}
             onChange={(advantage) => {
               setAdvantage(advantage);
+              clearRollIfNeeded();
+            }}
+            onCountChange={(count) => {
+              setAdvantageCount(count);
               clearRollIfNeeded();
             }}
           />

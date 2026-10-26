@@ -29,6 +29,11 @@
       <button data-n="d100" data-l="Percentile">Roll d100</button>
       <button data-n="d20+3" data-l="Hilda: Swords" data-m="stage">Stage d20+3</button>
       <button data-n="2d20kl1" data-l="Bane" data-m="stage">Stage 2d20kl1</button>
+      <button data-n="3d20kl1" data-l="Hilda: Swords (2 boons)">Roll 3d20kl1</button>
+      <button data-n="3d20kl1" data-l="Hilda: Swords (2 boons)" data-m="stage">Stage 3d20kl1</button>
+      <button data-n="d66" data-l="Oracle">Roll d66</button>
+      <button data-n="8d6" data-l="Big pool">Roll 8d6</button>
+      <button data-n="d20" data-l="GM: Ambush" data-v="gm" data-m="stage">Stage d20 hidden (GM)</button>
       <button data-n="3d7" data-l="Bad">Roll 3d7 (error)</button>
       <button id="ready">isReady?</button>
       <button id="toggle">Toggle dice panel</button>
@@ -40,6 +45,7 @@
       const origin = location.origin;
       const room = "room1";
       const obrref = btoa(`${origin} ${room}`);
+      const roomMetadata = {};
       const me = { id: "player-1", connectionId: "conn-1", name: "Hilda", role: "PLAYER", color: "#ff5c5c", syncView: false, selection: undefined, metadata: {} };
       const theme = {
         mode: "DARK",
@@ -114,6 +120,12 @@
           case "OBR_PLAYER_GET_COLOR": return reply({ color: me.color });
           case "OBR_PLAYER_GET_CONNECTION_ID": return reply({ connectionId: me.connectionId });
           case "OBR_PLAYER_GET_METADATA": return reply({ metadata: me.metadata });
+          case "OBR_ROOM_METADATA_SUBSCRIBE": subs.get(ref)?.add("OBR_ROOM_METADATA_EVENT_CHANGE"); return;
+          case "OBR_ROOM_GET_METADATA": return reply({ metadata: roomMetadata });
+          case "OBR_ROOM_SET_METADATA":
+            Object.assign(roomMetadata, d.update);
+            emit("OBR_ROOM_METADATA_EVENT_CHANGE", { metadata: roomMetadata });
+            return reply({});
           case "OBR_PLAYER_SET_METADATA":
             Object.assign(me.metadata, d.update);
             emit("OBR_PLAYER_EVENT_CHANGE", { player: me });
@@ -154,7 +166,7 @@
         document.body.appendChild(el);
         mount("testsheet", el, "/test-sheet.html");
       };
-      window.fakeObr = { me, deliverBroadcast, setActionOpen, log };
+      window.fakeObr = { me, roomMetadata, deliverBroadcast, setActionOpen, log };
 
       const bg = document.createElement("iframe");
       bg.id = "background";

@@ -5,6 +5,12 @@ import { DiceTransform } from "../types/DiceTransform";
 import { useSpring, animated, config } from "@react-spring/three";
 import { useThree } from "@react-three/fiber";
 
+const FOV = 28;
+/** Roughly a die's radius, so a die at the edge isn't cut in half */
+const DIE_MARGIN = 0.15;
+/** Sees the whole tray */
+const MAX_HEIGHT = 4.3;
+
 export function AnimatedPlayerCamera({
   rollTransforms,
 }: {
@@ -17,9 +23,10 @@ export function AnimatedPlayerCamera({
       const transforms = Object.values(rollTransforms);
       if (transforms.length > 0) {
         const bounds = getBoundingBox(transforms);
-        const size = Math.max(bounds.width, bounds.height);
+        // High enough that every die (plus its own size) fits the square view
+        const half = Math.max(bounds.width, bounds.height) / 2 + DIE_MARGIN;
+        const y = Math.min(MAX_HEIGHT, Math.max(1, half / Math.tan(((FOV / 2) * Math.PI) / 180)));
         const x = Math.min(0.8, Math.max(-0.8, bounds.center.x));
-        const y = lerp(1, 3, Math.max(Math.min(size, 1), 0));
         const z = Math.min(0.8, Math.max(-0.8, bounds.center.y));
         return [x, y, z];
       } else {
@@ -41,7 +48,7 @@ export function AnimatedPlayerCamera({
       <animated.group position={position as any /* react-spring 9 types predate @types/three 0.18x */}>
         <PerspectiveCamera
           makeDefault
-          fov={28}
+          fov={FOV}
           rotation={[-Math.PI / 2, 0, 0]}
         />
       </animated.group>
@@ -78,8 +85,4 @@ function getBoundingBox(transforms: DiceTransform[]): BoundingBox {
     height,
     center,
   };
-}
-
-function lerp(from: number, to: number, alpha: number): number {
-  return from * (1 - alpha) + to * alpha;
 }

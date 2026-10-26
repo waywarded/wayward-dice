@@ -6,6 +6,7 @@ import { DiceSet } from "../types/DiceSet";
 import { Die } from "../types/Die";
 import { generateDiceId } from "../helpers/generateDiceId";
 import type { RollRequestMeta } from "../api/protocol";
+import { getPluginId } from "../plugin/getPluginId";
 
 export type Advantage = "ADVANTAGE" | "DISADVANTAGE" | null;
 export type DiceCounts = Record<string, number>;
@@ -16,6 +17,30 @@ export interface StagedRequest {
   counts: DiceCounts;
   bonus: number;
   advantage: Advantage;
+  advantageCount: number;
+  /** The hidden toggle before staging, put back once the roll is thrown or cleared */
+  hiddenBefore: boolean;
+}
+
+/** The most extra dice a keep-highest/lowest roll can add per die */
+export const MAX_ADVANTAGE_COUNT = 5;
+
+const DICE_SET_KEY = getPluginId("diceSet");
+
+/** The chosen set is shared through localStorage so the panel and popover throw the same dice */
+function loadDiceSet(): DiceSet {
+  try {
+    const id = localStorage.getItem(DICE_SET_KEY);
+    return diceSets.find((set) => set.id === id) ?? diceSets[0];
+  } catch {
+    return diceSets[0];
+  }
+}
+
+function saveDiceSet(diceSet: DiceSet) {
+  try {
+    localStorage.setItem(DICE_SET_KEY, diceSet.id);
+  } catch {}
 }
 
 interface DiceControlsState {
@@ -25,6 +50,8 @@ interface DiceControlsState {
   diceCounts: DiceCounts;
   diceBonus: number;
   diceAdvantage: Advantage;
+  /** Extra dice rolled per die when keeping the highest or lowest (1 = Adv/Dis) */
+  diceAdvantageCount: number;
   diceHidden: boolean;
   diceRollPressTime: number | null;
   fairnessTesterOpen: boolean;
@@ -36,13 +63,15 @@ interface DiceControlsState {
   incrementDieCount: (id: string) => void;
   decrementDieCount: (id: string) => void;
   setDiceAdvantage: (advantage: Advantage) => void;
+  setDiceAdvantageCount: (count: number) => void;
+  setDiceHidden: (hidden: boolean) => void;
   setDiceBonus: (bonus: number) => void;
   toggleDiceHidden: () => void;
   setDiceRollPressTime: (time: number | null) => void;
   toggleFairnessTester: () => void;
 }
 
-const initialSet = diceSets[0];
+const initialSet = loadDiceSet();
 const initialDiceCounts = getDiceCountsFromSet(initialSet);
 const initialDiceById = getDiceByIdFromSet(initialSet);
 
@@ -54,6 +83,7 @@ export const useDiceControlsStore = create<DiceControlsState>()(
     diceCounts: initialDiceCounts,
     diceBonus: 0,
     diceAdvantage: null,
+    diceAdvantageCount: 1,
     diceHidden: false,
     diceRollPressTime: null,
     fairnessTesterOpen: false,
@@ -83,6 +113,7 @@ export const useDiceControlsStore = create<DiceControlsState>()(
         state.defaultDiceCounts = getDiceCountsFromSet(diceSet);
         state.diceById = getDiceByIdFromSet(diceSet);
       });
+      saveDiceSet(diceSet);
     },
     resetDiceCounts() {
       set((state) => {
@@ -118,6 +149,19 @@ export const useDiceControlsStore = create<DiceControlsState>()(
     setDiceAdvantage(advantage) {
       set((state) => {
         state.diceAdvantage = advantage;
+        if (advantage === null) {
+          state.diceAdvantageCount = 1;
+        }
+      });
+    },
+    setDiceAdvantageCount(count) {
+      set((state) => {
+        state.diceAdvantageCount = Math.max(1, Math.min(MAX_ADVANTAGE_COUNT, count));
+      });
+    },
+    setDiceHidden(hidden) {
+      set((state) => {
+        state.diceHidden = hidden;
       });
     },
     toggleDiceHidden() {
@@ -158,7 +202,8 @@ function getDiceByIdFromSet(diceSet: DiceSet) {
 export function getDiceToRoll(
   counts: DiceCounts,
   advantage: Advantage,
-  diceById: Record<string, Die>
+  diceById: Record<string, Die>,
+  advantageCount = 1
 ) {
   const dice: (Die | Dice)[] = [];
   const countEntries = Object.entries(counts);
@@ -168,52 +213,40 @@ export function getDiceToRoll(
       continue;
     }
     const { style, type } = die;
-    for (let i = 0; i < count; i++) {
-      if (advantage === null) {
-        if (type === "D100") {
-          // Push a d100 and d10 when rolling a d100
-          dice.push({
+    // Push a d100 and d10 when rolling a d100
+    const single = (): Die | Dice =>
+      type === "D100"
+        ? {
             dice: [
               { id: generateDiceId(), style, type: "D100" },
               { id: generateDiceId(), style, type: "D10" },
             ],
-          });
-        } else {
-          dice.push({ id: generateDiceId(), style, type });
-        }
+          }
+        : { id: generateDiceId(), style, type };
+    for (let i = 0; i < count; i++) {
+      if (advantage === null) {
+        dice.push(single());
       } else {
-        // Rolling with advantage or disadvantage
-        const combination = advantage === "ADVANTAGE" ? "HIGHEST" : "LOWEST";
-        if (type === "D100") {
-          // Push 2 d100s and d10s
-          dice.push({
-            dice: [
-              {
-                dice: [
-                  { id: generateDiceId(), style, type: "D100" },
-                  { id: generateDiceId(), style, type: "D10" },
-                ],
-              },
-              {
-                dice: [
-                  { id: generateDiceId(), style, type: "D100" },
-                  { id: generateDiceId(), style, type: "D10" },
-                ],
-              },
-            ],
-            combination,
-          });
-        } else {
-          dice.push({
-            dice: [
-              { id: generateDiceId(), style, type },
-              { id: generateDiceId(), style, type },
-            ],
-            combination,
-          });
-        }
+        // Keep the highest or lowest of the die and its extra copies
+        dice.push({
+          dice: Array.from({ length: 1 + advantageCount }, single),
+          combination: advantage === "ADVANTAGE" ? "HIGHEST" : "LOWEST",
+        });
       }
     }
   }
   return dice;
+}
+
+/** Re-read the dice set when another frame (panel or popover) changes it */
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key === DICE_SET_KEY) {
+      const next = loadDiceSet();
+      const state = useDiceControlsStore.getState();
+      if (next.id !== state.diceSet.id) {
+        state.changeDiceSet(next);
+      }
+    }
+  });
 }

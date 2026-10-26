@@ -18,6 +18,7 @@ import { InteractiveDiceRoll } from "../dice/InteractiveDiceRoll";
 import { useDiceRollStore } from "../dice/store";
 import { getCombinedDiceValue } from "../helpers/getCombinedDiceValue";
 import { DiceTransform } from "../types/DiceTransform";
+import { POPOVER_DPR } from "./popoverDpr";
 
 /**
  * The player's own tray in the background popover: rolls requested while the
@@ -73,7 +74,14 @@ export function SelfPopoverTray({
 
   return (
     <Box component="div" position="absolute" right={16} bottom={16}>
-      <Slide in={shown} onExited={() => onToggle("self", false)} direction="up">
+      {/* Mounted only while showing, so an idle popover holds no WebGL context */}
+      <Slide
+        in={shown}
+        onExited={() => onToggle("self", false)}
+        direction="up"
+        mountOnEnter
+        unmountOnExit
+      >
         <ButtonBase
           onClick={() => {
             setTimedOut(true);
@@ -95,7 +103,7 @@ export function SelfPopoverTray({
           >
             <Box component="div" height="250px" width="250px">
               <TraySuspense>
-                <Canvas frameloop="demand">
+                <Canvas frameloop="demand" dpr={POPOVER_DPR}>
                   <AudioListenerProvider volume={0.25}>
                     <Environment files={environment} />
                     <Tray />

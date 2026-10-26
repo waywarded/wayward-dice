@@ -17,6 +17,8 @@ import { AudioListenerProvider } from "../audio/AudioListenerProvider";
 import { Tray } from "../tray/Tray";
 import { TraySuspense } from "../tray/TraySuspense";
 import { AnimatedPlayerCamera } from "./AnimatedPlayerCamera";
+import { POPOVER_DPR } from "./popoverDpr";
+import { useSettingsStore } from "../settings/store";
 
 export function PopoverTray({
   player,
@@ -31,6 +33,8 @@ export function PopoverTray({
     usePlayerDice(player);
 
   const theme = useTheme();
+  const othersRolls = useSettingsStore((state) => state.othersRolls);
+  const caption = diceRoll?.request?.label ?? player?.name;
 
   const hidden = !diceRoll || diceRoll.hidden;
 
@@ -65,11 +69,39 @@ export function PopoverTray({
 
   return (
     <Box component="div" position="absolute" right={16} bottom={16}>
+      {/* Mounted only while showing, so idle players hold no WebGL context */}
       <Slide
         in={shown}
         onExited={() => onToggle(player.connectionId, false)}
         direction="up"
+        mountOnEnter
+        unmountOnExit
       >
+        {othersRolls === "RESULT" ? (
+          <ButtonBase onClick={handleClick}>
+            <Paper
+              elevation={8}
+              sx={{
+                width: "250px",
+                borderRadius: 2,
+                overflow: "hidden",
+                bgcolor: "background.default",
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                color="text.secondary"
+                textAlign="center"
+                lineHeight="40px"
+                px={1}
+                noWrap
+              >
+                {caption}
+                <span> | {finishedRolling ? finalValue : "…"}</span>
+              </Typography>
+            </Paper>
+          </ButtonBase>
+        ) : (
         <ButtonBase onClick={handleClick}>
           <Paper
             elevation={8}
@@ -86,7 +118,7 @@ export function PopoverTray({
           >
             <Box component="div" height="250px" width="250px">
               <TraySuspense>
-                <Canvas frameloop="demand">
+                <Canvas frameloop="demand" dpr={POPOVER_DPR}>
                   <AudioListenerProvider volume={0.25}>
                     <Environment files={environment} />
                     <Tray />
@@ -110,11 +142,12 @@ export function PopoverTray({
               }}
               noWrap
             >
-              {player?.name}
+              {caption}
               {finishedRolling && <span> | {finalValue}</span>}
             </Typography>
           </Paper>
         </ButtonBase>
+        )}
       </Slide>
     </Box>
   );

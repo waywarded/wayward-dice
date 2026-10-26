@@ -9,6 +9,8 @@ export interface DiceGroup {
   type: DiceType;
   /** Keep only the highest or lowest one (`kh1` / `kl1`) */
   keep?: "HIGHEST" | "LOWEST";
+  /** `d66`: two d6 read as tens and units */
+  d66?: boolean;
 }
 
 export interface ParsedNotation {
@@ -27,9 +29,10 @@ const SIDES: Record<string, DiceType> = {
 };
 
 const TERM = /^(\d*)d(\d+)(k[hl]1)?$/;
+const MAX_DICE = 20;
 
 /**
- * Parse the subset the sheets send: `2d6+1d4+3`, `d20-1`, `2d20kh1`.
+ * Parse the subset the sheets send: `2d6+1d4+3`, `d20-1`, `2d20kh1`, `3d20kl1`, `d66`.
  * Throws with a readable message for anything else.
  */
 export function parseNotation(notation: string): ParsedNotation {
@@ -58,14 +61,24 @@ export function parseNotation(notation: string): ParsedNotation {
       throw new Error(`Subtracting dice isn't supported ("${raw}")`);
     }
     const count = match[1] === "" ? 1 : Number(match[1]);
+    const keep = match[3] === "kh1" ? "HIGHEST" : match[3] === "kl1" ? "LOWEST" : undefined;
+    if (match[2] === "66") {
+      if (count !== 1 || keep) {
+        throw new Error(`Only a single d66 per term ("${raw}")`);
+      }
+      groups.push({ count: 1, type: "D6", d66: true });
+      continue;
+    }
     const type = SIDES[match[2]];
     if (!type) {
       throw new Error(`No d${match[2]} in this dice set`);
     }
-    if (count < 1 || count > 20) {
-      throw new Error(`Between 1 and 20 dice per term ("${raw}")`);
+    if (count < 1 || count > MAX_DICE) {
+      throw new Error(`Between 1 and ${MAX_DICE} dice per term ("${raw}")`);
     }
-    const keep = match[3] === "kh1" ? "HIGHEST" : match[3] === "kl1" ? "LOWEST" : undefined;
+    if (keep && count < 2) {
+      throw new Error(`Keeping one die needs at least two ("${raw}")`);
+    }
     groups.push({ count, type, keep });
   }
   if (groups.length === 0) {
@@ -91,6 +104,10 @@ function die(type: DiceType, style: DiceStyle): Die | Dice {
 export function getDiceFromNotation(parsed: ParsedNotation, style: DiceStyle): (Die | Dice)[] {
   const dice: (Die | Dice)[] = [];
   for (const group of parsed.groups) {
+    if (group.d66) {
+      dice.push({ dice: [die("D6", style), die("D6", style)], combination: "D66" });
+      continue;
+    }
     const rolled = Array.from({ length: group.count }, () => die(group.type, style));
     if (group.keep) {
       dice.push({ dice: rolled, combination: group.keep });

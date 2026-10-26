@@ -24,6 +24,7 @@ import { DiceType } from "../types/DiceType";
 import { useDiceHistoryStore } from "./history";
 import { Die } from "../types/Die";
 import { sendRollError } from "../api/protocol";
+import { keepLabel, useSettingsStore } from "../settings/store";
 
 const jiggle = keyframes`
 0% { transform: translate(0, 0) rotate(0deg); }
@@ -96,6 +97,9 @@ function DicePickedControls() {
   const setBonus = useDiceControlsStore((state) => state.setDiceBonus);
   const advantage = useDiceControlsStore((state) => state.diceAdvantage);
   const setAdvantage = useDiceControlsStore((state) => state.setDiceAdvantage);
+  const advantageCount = useDiceControlsStore((state) => state.diceAdvantageCount);
+  const setHidden = useDiceControlsStore((state) => state.setDiceHidden);
+  const keepNames = useSettingsStore((state) => state.room.keepNames);
 
   const resetDiceCounts = useDiceControlsStore(
     (state) => state.resetDiceCounts
@@ -108,13 +112,14 @@ function DicePickedControls() {
 
   function handleRoll() {
     if (hasDice && rollPressTime) {
-      const dice = getDiceToRoll(counts, advantage, diceById);
+      const dice = getDiceToRoll(counts, advantage, diceById, advantageCount);
       const activeTimeSeconds = (performance.now() - rollPressTime) / 1000;
       const speedMultiplier = Math.max(1, Math.min(10, activeTimeSeconds * 2));
       const modified =
         !!staged &&
         (staged.bonus !== bonus ||
           staged.advantage !== advantage ||
+          (advantage !== null && staged.advantageCount !== advantageCount) ||
           Object.keys({ ...counts, ...staged.counts }).some(
             (id) => (counts[id] ?? 0) !== (staged.counts[id] ?? 0)
           ));
@@ -124,7 +129,7 @@ function DicePickedControls() {
           : { dice, bonus, hidden },
         speedMultiplier
       );
-      setStaged(null);
+      endStaged();
 
       const rolledDiceById: Record<string, Die> = {};
       for (const id of Object.keys(counts)) {
@@ -132,11 +137,25 @@ function DicePickedControls() {
           rolledDiceById[id] = diceById[id];
         }
       }
-      pushRecentRoll({ advantage, counts, bonus, diceById: rolledDiceById });
+      pushRecentRoll({
+        advantage,
+        advantageCount,
+        counts,
+        bonus,
+        diceById: rolledDiceById,
+      });
 
       handleReset();
     }
     setRollPressTime(null);
+  }
+
+  /** Forget the staged request and put the hidden toggle back as it was */
+  function endStaged() {
+    if (staged) {
+      setStaged(null);
+      setHidden(staged.hiddenBefore);
+    }
   }
 
   function handleReset() {
@@ -276,7 +295,7 @@ function DicePickedControls() {
               e.stopPropagation();
               if (staged) {
                 sendRollError(staged.meta.source, staged.meta.rollId, "Cancelled");
-                setStaged(null);
+                endStaged();
               }
               handleReset();
             }}
@@ -316,7 +335,7 @@ function DicePickedControls() {
             color="white"
             variant="h6"
           >
-            {advantage === "ADVANTAGE" ? "Adv" : "Dis"}
+            {keepLabel(advantage, advantageCount, keepNames)}
           </Typography>
         )}
       </Stack>

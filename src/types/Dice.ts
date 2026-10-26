@@ -65,9 +65,10 @@ import { Die } from "./Die";
 export interface Dice {
   dice: (Die | Dice)[];
   /**
-   * How to combine the dice for this roll (defaults to `SUM` if undefined)
+   * How to combine the dice for this roll (defaults to `SUM` if undefined).
+   * `D66` reads two d6 as tens and units (11–66).
    */
-  combination?: "HIGHEST" | "LOWEST" | "SUM" | "NONE";
+  combination?: "HIGHEST" | "LOWEST" | "SUM" | "NONE" | "D66";
   bonus?: number;
 }
 

@@ -29,6 +29,13 @@ interface DiceRollState {
   rollThrows: Record<string, DiceThrow>;
   startRoll: (roll: DiceRoll, speedMultiplier?: number) => void;
   clearRoll: (ids?: string) => void;
+  /** Show a roll that already came to rest in another frame */
+  loadFinishedRoll: (state: {
+    roll: DiceRoll;
+    rollValues: Record<string, number>;
+    rollTransforms: Record<string, DiceTransform>;
+    rollThrows: Record<string, DiceThrow>;
+  }) => void;
   /** Reroll select ids of dice or reroll all dice by passing `undefined` */
   reroll: (ids?: string[], manualThrows?: Record<string, DiceThrow>) => void;
   finishDieRoll: (id: string, number: number, transform: DiceTransform) => void;
@@ -60,6 +67,13 @@ export const useDiceRollStore = create<DiceRollState>()(
         state.rollValues = {};
         state.rollTransforms = {};
         state.rollThrows = {};
+      }),
+    loadFinishedRoll: (finished) =>
+      set((state) => {
+        state.roll = finished.roll;
+        state.rollValues = finished.rollValues;
+        state.rollTransforms = finished.rollTransforms;
+        state.rollThrows = finished.rollThrows;
       }),
     reroll: (ids, manualThrows) => {
       set((state) => {

@@ -47,6 +47,14 @@ export function getCombinedDiceValue(
     return d100Value;
   }
 
+  if (dice.combination === "D66") {
+    const [tens, units] = dice.dice;
+    if (isDie(tens) && isDie(units) && values[tens.id] !== undefined && values[units.id] !== undefined) {
+      return values[tens.id] * 10 + values[units.id] + (dice.bonus || 0);
+    }
+    return null;
+  }
+
   let currentValues: number[] = [];
   for (const dieOrDice of dice.dice) {
     if (isDie(dieOrDice)) {
