@@ -51,7 +51,7 @@ export function DiceResults({
           onClick={() => onExpand(!expanded)}
           color="inherit"
         >
-          <Typography variant="h4" color={tone} noWrap>
+          <Typography variant="h6" fontWeight={500} color={tone} noWrap>
             {finalValue}
           </Typography>
         </Button>

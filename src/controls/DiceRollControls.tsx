@@ -392,10 +392,31 @@ function FinishedRollControls() {
   return (
     <>
       <GradientOverlay top height={resultsExpanded ? 500 : undefined} />
+      <GradientOverlay />
       <Box
         sx={{
           position: "absolute",
           top: 0,
+          right: 0,
+          pointerEvents: "none",
+          padding: 3,
+        }}
+        component="div"
+      >
+        <Tooltip title="Clear" sx={{ pointerEvents: "all" }}>
+          <IconButton
+            onClick={() => clearRoll()}
+            sx={{ pointerEvents: "all", color: "white" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      {/* At the bottom, so a long result ("1 · Critical success") never runs into them */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 0,
           left: 0,
           width: "100%",
           pointerEvents: "none",
@@ -403,13 +424,7 @@ function FinishedRollControls() {
         }}
         component="div"
       >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          width="100%"
-          alignItems="start"
-        >
-          <Stack direction="row" alignItems="center" gap={0.5}>
+        <Stack direction="row" justifyContent="center" alignItems="center" gap={1}>
             <Tooltip title="Reroll" sx={{ pointerEvents: "all" }}>
               <IconButton
                 onClick={() => reroll()}
@@ -431,15 +446,6 @@ function FinishedRollControls() {
                 </Button>
               </Tooltip>
             )}
-          </Stack>
-          <Tooltip title="Clear" sx={{ pointerEvents: "all" }}>
-            <IconButton
-              onClick={() => clearRoll()}
-              sx={{ pointerEvents: "all", color: "white" }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Tooltip>
         </Stack>
       </Box>
       <Stack
@@ -451,6 +457,8 @@ function FinishedRollControls() {
           pointerEvents: "none",
           padding: 3,
           alignItems: "center",
+          // Clear of the × in the corner
+          maxWidth: "calc(100% - 112px)",
         }}
         component="div"
       >

@@ -142,8 +142,9 @@ function HistoryRow({ entry, now }: { entry: HistoryEntry; now: number }) {
             </Typography>
           </Stack>
           <Typography variant="caption" color="text.secondary" noWrap component="div">
-            {entry.l ? `${entry.n} · ` : ""}
-            {entry.v?.split(",").join(" ")}
+            {/* "3d6=6 - rolled: 1,3,5": the faces apart from the notation's own numbers */}
+            {entry.l ? `${entry.n} - ` : ""}
+            {entry.v ? `rolled: ${entry.v}` : ""}
           </Typography>
         </>
       )}
