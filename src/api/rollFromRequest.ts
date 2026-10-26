@@ -1,6 +1,6 @@
 import { useDiceRollStore } from "../dice/store";
 import { MAX_ADVANTAGE_COUNT, useDiceControlsStore } from "../controls/store";
-import { getDiceFromNotation, ParsedNotation } from "./notation";
+import { getRollFromNotation, ParsedNotation } from "./notation";
 import { RollRequest, sendRollError } from "./protocol";
 
 /** A throw settles within 5 s; one still going after this is stuck (e.g. a frozen tab) */
@@ -29,8 +29,7 @@ export function rollFromRequest(request: RollRequest, parsed: ParsedNotation) {
   const { diceSet } = useDiceControlsStore.getState();
   const style = diceSet.dice[0].style;
   useDiceRollStore.getState().startRoll({
-    dice: getDiceFromNotation(parsed, style),
-    bonus: parsed.bonus,
+    ...getRollFromNotation(parsed, style),
     hidden: request.visibility === "gm",
     request: {
       rollId: request.rollId,
@@ -49,12 +48,16 @@ export function stageRequest(request: RollRequest, parsed: ParsedNotation): stri
   if (requestInFlight()) {
     return "Roll in progress";
   }
-  if (parsed.groups.some((group) => group.d66)) {
+  if (parsed.parts.length > 1) {
+    return "The dice panel can't show a roll in several parts";
+  }
+  const [part] = parsed.parts;
+  if (part.groups.some((group) => group.d66)) {
     return "The dice panel can't show a d66";
   }
   // The panel's keep applies to every die picked, so it can only show a keep on its own
-  const keeps = parsed.groups.filter((group) => group.keep);
-  if (keeps.length > 0 && parsed.groups.length > 1) {
+  const keeps = part.groups.filter((group) => group.keep);
+  if (keeps.length > 0 && part.groups.length > 1) {
     return "The dice panel can only keep the highest or lowest of one kind of die";
   }
   if (keeps[0] && keeps[0].count - 1 > MAX_ADVANTAGE_COUNT) {
@@ -62,7 +65,7 @@ export function stageRequest(request: RollRequest, parsed: ParsedNotation): stri
   }
   const controls = useDiceControlsStore.getState();
   const counts: Record<string, number> = {};
-  for (const group of parsed.groups) {
+  for (const group of part.groups) {
     const die = controls.diceSet.dice.find((d) => d.type === group.type);
     if (!die) {
       return `No ${group.type.toLowerCase()} in this dice set`;
@@ -75,7 +78,8 @@ export function stageRequest(request: RollRequest, parsed: ParsedNotation): stri
   for (const [id, count] of Object.entries(counts)) {
     controls.changeDieCount(id, count);
   }
-  controls.setDiceBonus(parsed.bonus);
+  controls.setDiceBonus(part.bonus);
+  controls.setDiceCount(part.count ?? null);
   controls.setDiceAdvantage(keeps[0]?.keep === "HIGHEST" ? "ADVANTAGE" : keeps[0]?.keep === "LOWEST" ? "DISADVANTAGE" : null);
   if (keeps[0]) {
     controls.setDiceAdvantageCount(keeps[0].count - 1);
@@ -100,6 +104,7 @@ export function stageRequest(request: RollRequest, parsed: ParsedNotation): stri
     bonus: staged.diceBonus,
     advantage: staged.diceAdvantage,
     advantageCount: staged.diceAdvantageCount,
+    count: staged.diceCount,
     hiddenBefore,
   });
   return null;

@@ -15,7 +15,8 @@ import { RecentRoll, useDiceHistoryStore } from "./history";
 import { DicePreview } from "../previews/DicePreview";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
-import { getDiceToRoll, useDiceControlsStore } from "./store";
+import { getDiceToRoll, getPickedRoll, useDiceControlsStore } from "./store";
+import { countRuleLabel } from "../types/Dice";
 import { keepLabel, useSettingsStore } from "../settings/store";
 
 export function DiceHistory() {
@@ -35,7 +36,7 @@ export function DiceHistory() {
       roll.diceById,
       roll.advantageCount
     );
-    startRoll({ dice, bonus: roll.bonus, hidden });
+    startRoll({ ...getPickedRoll(dice, roll.bonus, roll.count ?? null), hidden });
     resetDiceCounts();
     setBonus(0);
     setAdvantage(null);
@@ -146,6 +147,7 @@ function RecentRollChip({
               {recentRoll.bonus}
             </span>
           )}
+          {recentRoll.count && <span>{countRuleLabel(recentRoll.count)}</span>}
           {recentRoll.advantage !== null && (
             <span>
               {keepLabel(recentRoll.advantage, recentRoll.advantageCount ?? 1, keepNames)}

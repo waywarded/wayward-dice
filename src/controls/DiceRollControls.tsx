@@ -19,7 +19,8 @@ import { RerollDiceIcon } from "../icons/RerollDiceIcon";
 import { GradientOverlay } from "./GradientOverlay";
 import { useDiceRollStore } from "../dice/store";
 import { DiceResults } from "./DiceResults";
-import { getDiceToRoll, useDiceControlsStore } from "./store";
+import { getDiceToRoll, getPickedRoll, useDiceControlsStore } from "./store";
+import { countRuleLabel } from "../types/Dice";
 import { DiceType } from "../types/DiceType";
 import { useDiceHistoryStore } from "./history";
 import { Die } from "../types/Die";
@@ -42,15 +43,17 @@ export function DiceRollControls() {
   const counts = useDiceControlsStore((state) => state.diceCounts);
   const bonus = useDiceControlsStore((state) => state.diceBonus);
   const advantage = useDiceControlsStore((state) => state.diceAdvantage);
-  // Is currently the default dice state (all counts 0 and advantage/bonus defaults)
+  const diceCount = useDiceControlsStore((state) => state.diceCount);
+  // Is currently the default dice state (all counts 0 and advantage/bonus/count defaults)
   const isDefault = useMemo(
     () =>
       Object.entries(defaultDiceCounts).every(
         ([type, count]) => counts[type as DiceType] === count
       ) &&
       advantage === null &&
-      bonus === 0,
-    [counts, defaultDiceCounts, advantage, bonus]
+      bonus === 0 &&
+      diceCount === null,
+    [counts, defaultDiceCounts, advantage, bonus, diceCount]
   );
 
   const rollValues = useDiceRollStore((state) => state.rollValues);
@@ -99,6 +102,8 @@ function DicePickedControls() {
   const setAdvantage = useDiceControlsStore((state) => state.setDiceAdvantage);
   const advantageCount = useDiceControlsStore((state) => state.diceAdvantageCount);
   const setHidden = useDiceControlsStore((state) => state.setDiceHidden);
+  const diceCount = useDiceControlsStore((state) => state.diceCount);
+  const setDiceCount = useDiceControlsStore((state) => state.setDiceCount);
   const keepNames = useSettingsStore((state) => state.room.keepNames);
 
   const resetDiceCounts = useDiceControlsStore(
@@ -120,13 +125,15 @@ function DicePickedControls() {
         (staged.bonus !== bonus ||
           staged.advantage !== advantage ||
           (advantage !== null && staged.advantageCount !== advantageCount) ||
+          JSON.stringify(staged.count) !== JSON.stringify(diceCount) ||
           Object.keys({ ...counts, ...staged.counts }).some(
             (id) => (counts[id] ?? 0) !== (staged.counts[id] ?? 0)
           ));
+      const picked = getPickedRoll(dice, bonus, diceCount);
       startRoll(
         staged
-          ? { dice, bonus, hidden, request: staged.meta, modified }
-          : { dice, bonus, hidden },
+          ? { ...picked, hidden, request: staged.meta, modified }
+          : { ...picked, hidden },
         speedMultiplier
       );
       endStaged();
@@ -140,6 +147,7 @@ function DicePickedControls() {
       pushRecentRoll({
         advantage,
         advantageCount,
+        count: diceCount,
         counts,
         bonus,
         diceById: rolledDiceById,
@@ -162,6 +170,7 @@ function DicePickedControls() {
     resetDiceCounts();
     setBonus(0);
     setAdvantage(null);
+    setDiceCount(null);
   }
 
   const rollPressTime = useDiceControlsStore(
@@ -336,6 +345,16 @@ function DicePickedControls() {
             variant="h6"
           >
             {keepLabel(advantage, advantageCount, keepNames)}
+          </Typography>
+        )}
+        {diceCount && (
+          <Typography
+            textAlign="left"
+            lineHeight="40px"
+            color="white"
+            variant="h6"
+          >
+            Count {countRuleLabel(diceCount)}
           </Typography>
         )}
       </Stack>

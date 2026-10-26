@@ -1,4 +1,4 @@
-import { Dice, isDice } from "../types/Dice";
+import { Dice, isDice, meetsCount } from "../types/Dice";
 import { isDie } from "../types/Die";
 
 /**
@@ -55,6 +55,10 @@ export function getCombinedDiceValue(
     return null;
   }
 
+  if (dice.combination === "PARTS") {
+    return null;
+  }
+
   let currentValues: number[] = [];
   for (const dieOrDice of dice.dice) {
     if (isDie(dieOrDice)) {
@@ -75,6 +79,11 @@ export function getCombinedDiceValue(
   }
 
   const bonus = dice.bonus || 0;
+
+  if (dice.combination === "COUNT" && dice.count) {
+    const rule = dice.count;
+    return currentValues.filter((value) => meetsCount(value, rule)).length;
+  }
 
   if (currentValues.length === 0 || dice.combination === "NONE") {
     if (dice.bonus === undefined) {

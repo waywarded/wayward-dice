@@ -17,6 +17,8 @@ export interface RollRequest {
   notation: string;
   label?: string;
   visibility?: "all" | "gm";
+  /** Critical faces ("1", ">18", "<3"); accepted, not shown yet */
+  crit?: { success?: string; failure?: string };
   /** "roll" throws now; "stage" opens the dice panel filled in, and the player presses Roll */
   mode?: "roll" | "stage";
 }
@@ -35,10 +37,21 @@ export interface RollResult {
   notation: string;
   /** Each die's face, in throw order (a d100 pair reports both dice) */
   values: number[];
+  /** Kept dice plus the bonus; the number of successes for a counted roll; null for a roll in parts */
   total: number | null;
+  /** Only for a counted roll (`5d6=6`) */
+  successes?: number;
+  /** Only for a roll in comma parts, one per part */
+  parts?: RollPartResult[];
   hidden: boolean;
   /** True when a staged roll was changed in the panel before rolling */
   modified?: boolean;
+}
+
+export interface RollPartResult {
+  values: number[];
+  total: number | null;
+  successes?: number;
 }
 
 export function isRollRequest(value: unknown): value is RollRequest {

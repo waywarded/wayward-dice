@@ -3,6 +3,13 @@ import { useDiceRollStore } from "../dice/store";
 import { getDieFromDice } from "../helpers/getDieFromDice";
 import { getCombinedDiceValue } from "../helpers/getCombinedDiceValue";
 import { sendRollResult } from "./protocol";
+import { Dice, isDice } from "../types/Dice";
+
+/** A total, and the successes when the dice were counted */
+function partResult(dice: Dice, values: Record<string, number>) {
+  const total = getCombinedDiceValue(dice, values);
+  return dice.combination === "COUNT" ? { total, successes: total ?? 0 } : { total };
+}
 
 /**
  * Sends `{source}/roll-result` when a requested roll in this frame's dice store
@@ -38,7 +45,10 @@ export function RollResultReporter() {
         label: request.label,
         notation: request.notation,
         values: finished,
-        total: getCombinedDiceValue(roll, byId),
+        ...partResult(roll, byId),
+        ...(roll.combination === "PARTS"
+          ? { parts: roll.dice.filter(isDice).map((part) => ({ values: getDieFromDice(part).map((die) => byId[die.id]), ...partResult(part, byId) })) }
+          : {}),
         hidden: !!roll.hidden,
         modified: roll.modified,
       });

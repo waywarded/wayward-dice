@@ -88,6 +88,11 @@ export function RollRequestListener() {
         }
 
         if (request.mode === "stage") {
+          // The corner tray's last roll goes too: the staged dice start from an empty tray
+          const own = useDiceRollStore.getState();
+          if (!Object.values(own.rollValues).some((value) => value === null)) {
+            own.clearRoll();
+          }
           await OBR.action.open();
           const ack = await sendToPanel({ type: "stage", request }, STAGE_TIMEOUT);
           if (!ack || ack.error) {

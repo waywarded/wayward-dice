@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { diceSets } from "../sets/diceSets";
-import { Dice } from "../types/Dice";
+import { CountRule, Dice } from "../types/Dice";
 import { DiceSet } from "../types/DiceSet";
 import { Die } from "../types/Die";
 import { generateDiceId } from "../helpers/generateDiceId";
@@ -18,6 +18,7 @@ export interface StagedRequest {
   bonus: number;
   advantage: Advantage;
   advantageCount: number;
+  count: CountRule | null;
   /** The hidden toggle before staging, put back once the roll is thrown or cleared */
   hiddenBefore: boolean;
 }
@@ -52,6 +53,8 @@ interface DiceControlsState {
   diceAdvantage: Advantage;
   /** Extra dice rolled per die when keeping the highest or lowest (1 = Adv/Dis) */
   diceAdvantageCount: number;
+  /** Count the dice that meet this rule instead of adding them up (Vaesen pools) */
+  diceCount: CountRule | null;
   diceHidden: boolean;
   diceRollPressTime: number | null;
   fairnessTesterOpen: boolean;
@@ -64,6 +67,7 @@ interface DiceControlsState {
   decrementDieCount: (id: string) => void;
   setDiceAdvantage: (advantage: Advantage) => void;
   setDiceAdvantageCount: (count: number) => void;
+  setDiceCount: (count: CountRule | null) => void;
   setDiceHidden: (hidden: boolean) => void;
   setDiceBonus: (bonus: number) => void;
   toggleDiceHidden: () => void;
@@ -84,6 +88,7 @@ export const useDiceControlsStore = create<DiceControlsState>()(
     diceBonus: 0,
     diceAdvantage: null,
     diceAdvantageCount: 1,
+    diceCount: null,
     diceHidden: false,
     diceRollPressTime: null,
     fairnessTesterOpen: false,
@@ -151,12 +156,25 @@ export const useDiceControlsStore = create<DiceControlsState>()(
         state.diceAdvantage = advantage;
         if (advantage === null) {
           state.diceAdvantageCount = 1;
+        } else {
+          // A count of successes looks at every die, so it can't keep only one
+          state.diceCount = null;
         }
       });
     },
     setDiceAdvantageCount(count) {
       set((state) => {
         state.diceAdvantageCount = Math.max(1, Math.min(MAX_ADVANTAGE_COUNT, count));
+      });
+    },
+    setDiceCount(count) {
+      set((state) => {
+        state.diceCount = count;
+        if (count) {
+          state.diceAdvantage = null;
+          state.diceAdvantageCount = 1;
+          state.diceBonus = 0;
+        }
       });
     },
     setDiceHidden(hidden) {
@@ -249,4 +267,13 @@ if (typeof window !== "undefined") {
       }
     }
   });
+}
+
+/** The roll the picker describes: dice added up with a bonus, or counted against a rule */
+export function getPickedRoll(
+  dice: (Die | Dice)[],
+  bonus: number,
+  count: CountRule | null
+): Dice {
+  return count ? { dice, combination: "COUNT", count } : { dice, bonus };
 }

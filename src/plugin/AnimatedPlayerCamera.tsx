@@ -7,7 +7,7 @@ import { useThree } from "@react-three/fiber";
 
 const FOV = 28;
 /** Roughly a die's radius, so a die at the edge isn't cut in half */
-const DIE_MARGIN = 0.15;
+const DIE_MARGIN = 0.25;
 /** Sees the whole tray */
 const MAX_HEIGHT = 4.3;
 

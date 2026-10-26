@@ -2,12 +2,14 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { Advantage, DiceCounts } from "./store";
 import { Die } from "../types/Die";
+import { CountRule } from "../types/Dice";
 
 export interface RecentRoll {
   counts: DiceCounts;
   bonus: number;
   advantage: Advantage;
   advantageCount?: number;
+  count?: CountRule | null;
   diceById: Record<string, Die>;
 }
 

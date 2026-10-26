@@ -24,6 +24,10 @@ const requests: {
   { label: "Stage: GM ambush", notation: "d20", visibility: "gm", mode: "stage" },
   { label: "Oracle", notation: "d66" },
   { label: "Big pool", notation: "8d6" },
+  { label: "Investigation · 5 dice", notation: "5d6=6" },
+  { label: "Stage: 4-dice pool", notation: "4d6=6", mode: "stage" },
+  { label: "Progress 6", notation: "2d10<6" },
+  { label: "Iron +2 vs challenge", notation: "1d6+2, 1d10, 1d10" },
   { label: "Bad notation", notation: "3d7" },
 ];
 

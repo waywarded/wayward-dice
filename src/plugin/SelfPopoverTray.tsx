@@ -16,7 +16,8 @@ import { TraySuspense } from "../tray/TraySuspense";
 import { AnimatedPlayerCamera } from "./AnimatedPlayerCamera";
 import { InteractiveDiceRoll } from "../dice/InteractiveDiceRoll";
 import { useDiceRollStore } from "../dice/store";
-import { getCombinedDiceValue } from "../helpers/getCombinedDiceValue";
+import { getRollSummary } from "../helpers/getRollSummary";
+import { TrayCaption } from "./TrayCaption";
 import { DiceTransform } from "../types/DiceTransform";
 import { POPOVER_DPR } from "./popoverDpr";
 
@@ -43,10 +44,10 @@ export function SelfPopoverTray({
     return values.length > 0 && values.every((value) => value !== null);
   }, [rollValues]);
 
-  const finalValue = useMemo(
+  const summary = useMemo(
     () =>
       roll && finishedRolling
-        ? getCombinedDiceValue(roll, rollValues as Record<string, number>)
+        ? getRollSummary(roll, rollValues as Record<string, number>)
         : null,
     [roll, rollValues, finishedRolling]
   );
@@ -119,17 +120,7 @@ export function SelfPopoverTray({
                 </Canvas>
               </TraySuspense>
             </Box>
-            <Typography
-              variant="subtitle1"
-              color="text.secondary"
-              textAlign="center"
-              lineHeight="32px"
-              sx={{ bgcolor: "background.default" }}
-              noWrap
-            >
-              {label ?? name}
-              {finishedRolling && <span> | {finalValue}</span>}
-            </Typography>
+            <TrayCaption label={label ?? name} result={summary} />
           </Paper>
         </ButtonBase>
       </Slide>

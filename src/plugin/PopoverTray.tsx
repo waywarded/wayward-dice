@@ -18,6 +18,7 @@ import { Tray } from "../tray/Tray";
 import { TraySuspense } from "../tray/TraySuspense";
 import { AnimatedPlayerCamera } from "./AnimatedPlayerCamera";
 import { POPOVER_DPR } from "./popoverDpr";
+import { TrayCaption } from "./TrayCaption";
 import { useSettingsStore } from "../settings/store";
 
 export function PopoverTray({
@@ -29,7 +30,7 @@ export function PopoverTray({
   onToggle: (connectionId: string, show: boolean) => void;
   onOpen: (connectionId: string) => void;
 }) {
-  const { diceRoll, finalValue, finishedRolling, finishedRollTransforms } =
+  const { diceRoll, summary, finishedRolling, finishedRollTransforms } =
     usePlayerDice(player);
 
   const theme = useTheme();
@@ -88,17 +89,11 @@ export function PopoverTray({
                 bgcolor: "background.default",
               }}
             >
-              <Typography
-                variant="subtitle1"
-                color="text.secondary"
-                textAlign="center"
+              <TrayCaption
+                label={caption}
+                result={finishedRolling ? summary : "…"}
                 lineHeight="40px"
-                px={1}
-                noWrap
-              >
-                {caption}
-                <span> | {finishedRolling ? finalValue : "…"}</span>
-              </Typography>
+              />
             </Paper>
           </ButtonBase>
         ) : (
@@ -132,19 +127,7 @@ export function PopoverTray({
                 </Canvas>
               </TraySuspense>
             </Box>
-            <Typography
-              variant="subtitle1"
-              color="text.secondary"
-              textAlign="center"
-              lineHeight="32px"
-              sx={{
-                bgcolor: "background.default",
-              }}
-              noWrap
-            >
-              {caption}
-              {finishedRolling && <span> | {finalValue}</span>}
-            </Typography>
+            <TrayCaption label={caption} result={finishedRolling ? summary : null} />
           </Paper>
         </ButtonBase>
         )}

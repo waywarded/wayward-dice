@@ -8,6 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 
 import { DieBonus } from "./DieBonus";
 import { DieAdvantage } from "./DieAdvantage";
+import { DieCount } from "./DieCount";
 import { useDiceControlsStore } from "./store";
 import { useDiceRollStore } from "../dice/store";
 import { useSettingsStore } from "../settings/store";
@@ -20,6 +21,8 @@ export function DiceExtras() {
   const advantageCount = useDiceControlsStore((state) => state.diceAdvantageCount);
   const setAdvantageCount = useDiceControlsStore((state) => state.setDiceAdvantageCount);
   const room = useSettingsStore((state) => state.room);
+  const diceCount = useDiceControlsStore((state) => state.diceCount);
+  const setDiceCount = useDiceControlsStore((state) => state.setDiceCount);
 
   const clearRoll = useDiceRollStore((state) => state.clearRoll);
   const roll = useDiceRollStore((state) => state.roll);
@@ -42,7 +45,7 @@ export function DiceExtras() {
   return (
     <>
       <Tooltip
-        title={room.keepNames === "BOON" ? "Bonus and boons" : "Bonus and advantage"}
+        title={room.keepNames === "BOON" ? "Bonus, boons, count" : "Bonus, advantage, count"}
         placement="top"
         disableInteractive
       >
@@ -76,6 +79,8 @@ export function DiceExtras() {
         }}
       >
         <Stack>
+          {/* A count of successes has no bonus */}
+          {!diceCount && (
           <DieBonus
             bonus={bonus}
             onChange={(bonus) => {
@@ -91,7 +96,8 @@ export function DiceExtras() {
               clearRollIfNeeded();
             }}
           />
-          <Divider variant="middle" />
+          )}
+          {!diceCount && <Divider variant="middle" />}
           <DieAdvantage
             advantage={advantage}
             count={advantageCount}
@@ -102,6 +108,14 @@ export function DiceExtras() {
             }}
             onCountChange={(count) => {
               setAdvantageCount(count);
+              clearRollIfNeeded();
+            }}
+          />
+          <Divider variant="middle" />
+          <DieCount
+            count={diceCount}
+            onChange={(count) => {
+              setDiceCount(count);
               clearRollIfNeeded();
             }}
           />

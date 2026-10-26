@@ -14,9 +14,10 @@ export function PanelApiBridge() {
     const channel = openPanelChannel((message) => {
       if (message.type === "roll-state") {
         // Show what the popover threw while the panel was closed, unless this tray is busy
+        // nor once a request arrived here (a staged roll starts from an empty tray)
         const current = useDiceRollStore.getState();
         const busy = Object.values(current.rollValues).some((value) => value === null);
-        if (!busy) {
+        if (!busy && handled.size === 0) {
           current.loadFinishedRoll(message.state);
         }
         return;

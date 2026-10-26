@@ -66,10 +66,41 @@ export interface Dice {
   dice: (Die | Dice)[];
   /**
    * How to combine the dice for this roll (defaults to `SUM` if undefined).
-   * `D66` reads two d6 as tens and units (11–66).
+   * `D66` reads two d6 as tens and units (11–66). `COUNT` is the number of
+   * dice that meet `count`. `PARTS` keeps each child's result apart
+   * (`1d6+2, 1d10, 1d10`).
    */
-  combination?: "HIGHEST" | "LOWEST" | "SUM" | "NONE" | "D66";
+  combination?: "HIGHEST" | "LOWEST" | "SUM" | "NONE" | "D66" | "COUNT" | "PARTS";
   bonus?: number;
+  /** With `COUNT`: which faces are successes */
+  count?: CountRule;
+}
+
+/** A die succeeds when its face compares to the target, e.g. `{ op: ">=", target: 6 }` */
+export interface CountRule {
+  op: "=" | ">" | ">=" | "<" | "<=";
+  target: number;
+}
+
+export function meetsCount(value: number, { op, target }: CountRule) {
+  switch (op) {
+    case "=":
+      return value === target;
+    case ">":
+      return value > target;
+    case ">=":
+      return value >= target;
+    case "<":
+      return value < target;
+    case "<=":
+      return value <= target;
+  }
+}
+
+/** How a count rule reads, e.g. "≥ 6" */
+export function countRuleLabel({ op, target }: CountRule) {
+  const symbol = { "=": "=", ">": ">", ">=": "≥", "<": "<", "<=": "≤" }[op];
+  return `${symbol} ${target}`;
 }
 
 export function isDice(value: any): value is Dice {
