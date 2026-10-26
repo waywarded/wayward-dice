@@ -33,12 +33,28 @@ function loadOthersRolls(): OthersRolls {
   }
 }
 
+/** When the dice panel opens by itself: never, for this player's requested rolls, or for everyone's */
+export type AutoOpen = "NEVER" | "MINE" | "ALL";
+
+const AUTO_OPEN_KEY = getPluginId("autoOpen");
+
+function loadAutoOpen(): AutoOpen {
+  try {
+    const value = localStorage.getItem(AUTO_OPEN_KEY);
+    return value === "NEVER" || value === "ALL" ? value : "MINE";
+  } catch {
+    return "MINE";
+  }
+}
+
 interface SettingsState {
   room: RoomSettings;
   setRoom: (room: RoomSettings) => void;
   /** Per player, shared by the panel and the popover through localStorage */
   othersRolls: OthersRolls;
   setOthersRolls: (value: OthersRolls) => void;
+  autoOpen: AutoOpen;
+  setAutoOpen: (value: AutoOpen) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()((set) => ({
@@ -51,12 +67,22 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
     } catch {}
     set({ othersRolls });
   },
+  autoOpen: loadAutoOpen(),
+  setAutoOpen: (autoOpen) => {
+    try {
+      localStorage.setItem(AUTO_OPEN_KEY, autoOpen);
+    } catch {}
+    set({ autoOpen });
+  },
 }));
 
 if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
     if (event.key === OTHERS_ROLLS_KEY) {
       useSettingsStore.setState({ othersRolls: loadOthersRolls() });
+    }
+    if (event.key === AUTO_OPEN_KEY) {
+      useSettingsStore.setState({ autoOpen: loadAutoOpen() });
     }
   });
 }

@@ -6,6 +6,7 @@ import Box from "@mui/material/Box";
 import { PopoverTray } from "./PopoverTray";
 import { getPluginId } from "./getPluginId";
 import { SelfPopoverTray } from "./SelfPopoverTray";
+import { focusPlayerTray } from "./focusPlayerTray";
 import { useSettingsStore } from "../settings/store";
 
 export function PopoverTrays() {
@@ -42,12 +43,7 @@ export function PopoverTrays() {
   }
 
   function handleTrayOpen(connectionId: string) {
-    if (window.BroadcastChannel) {
-      OBR.action.open();
-      const channel = new BroadcastChannel(getPluginId("focused-tray"));
-      channel.postMessage(connectionId);
-      channel.close();
-    }
+    focusPlayerTray(connectionId);
   }
 
   // Hide popover when no trays are visible, and keep it small for results only

@@ -22,9 +22,12 @@ Send `wayward-dice/roll-request`:
 | `crit` | `{ success?, failure? }`? | Critical faces, e.g. `{ "success": "1", "failure": "20" }` for Dragonbane's Dragon and Demon (a face, or `">18"` / `"<3"`). Accepted now; not shown yet |
 | `mode` | `"roll"` \| `"stage"` | `"roll"` (default) throws now. `"stage"` opens the dice panel with the dice, bonus, keep and label filled in, without throwing; the player can change it and press Roll |
 
-Where a roll runs:
-- **Dice panel closed:** in a small tray in the bottom-right corner, like other players' rolls. The panel doesn't open.
+Where a roll runs depends on the player's **Auto-open dice panel** setting (⚙ in the panel; *My rolls* unless they change it):
 - **Dice panel open:** in the panel's tray, as if the player had pressed Roll.
+- **Closed, *My rolls* or *All rolls*:** the panel opens and the dice are thrown there. If it doesn't load within 5 s, the corner tray rolls instead.
+- **Closed, *Never*:** in a small tray in the bottom-right corner, like other players' rolls.
+
+With *All rolls*, the panel also opens on another player's tray when they roll (not their hidden rolls, and not while this player has a staged roll waiting).
 
 Either way it uses the dice set the player last picked in the panel.
 

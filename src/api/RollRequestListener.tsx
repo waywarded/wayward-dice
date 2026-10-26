@@ -1,5 +1,6 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useSettingsStore } from "../settings/store";
 import { parseNotation } from "./notation";
 import { openPanelChannel, sendToPanel } from "./panelChannel";
 import {
@@ -20,6 +21,16 @@ import { DiceTransform } from "../types/DiceTransform";
 const STAGE_TIMEOUT = 10_000;
 /** An open panel answers within a frame or two; after this, roll here instead */
 const OPEN_PANEL_TIMEOUT = 800;
+/** A panel opened for the roll has to load first */
+const OPENING_PANEL_TIMEOUT = 5_000;
+
+/** Staged requests the panel holds (rollId → source), so closing it doesn't leave their senders waiting */
+const pendingStaged = new Map<string, string>();
+
+/** The player is setting up a staged roll; other players' rolls shouldn't take over the panel */
+export function hasStagedRequest() {
+  return pendingStaged.size > 0;
+}
 
 /**
  * Lives in the always-present background popover, so requests are heard even
@@ -27,13 +38,10 @@ const OPEN_PANEL_TIMEOUT = 800;
  * the panel gets requests from here, so nothing rolls twice.
  */
 export function RollRequestListener() {
-  // Staged requests the panel holds, so closing it doesn't leave their senders waiting
-  const pendingStaged = useRef(new Map<string, string>());
-
   useEffect(() => {
     const channel = openPanelChannel(async (message) => {
       if (message.type === "staged-done") {
-        pendingStaged.current.delete(message.rollId);
+        pendingStaged.delete(message.rollId);
       } else if (message.type === "roll-state?") {
         const state = await finishedRollToHandOver();
         if (state) {
@@ -42,11 +50,11 @@ export function RollRequestListener() {
       }
     });
     const unsubscribe = OBR.action.onOpenChange((open) => {
-      if (!open && pendingStaged.current.size > 0) {
-        for (const [rollId, source] of pendingStaged.current) {
+      if (!open && pendingStaged.size > 0) {
+        for (const [rollId, source] of pendingStaged) {
           sendRollError(source, rollId, "Cancelled");
         }
-        pendingStaged.current.clear();
+        pendingStaged.clear();
         channel.postMessage({ type: "cancel-staged" });
       }
     });
@@ -102,14 +110,21 @@ export function RollRequestListener() {
               ack?.error ?? "The dice panel didn't open"
             );
           } else {
-            pendingStaged.current.set(request.rollId, request.source);
+            pendingStaged.set(request.rollId, request.source);
           }
           return;
         }
 
-        // With the panel open, roll in its tray as if the player pressed Roll
-        if (await OBR.action.isOpen()) {
-          const ack = await sendToPanel({ type: "roll", request }, OPEN_PANEL_TIMEOUT);
+        // With the panel open, or opened for it, roll in its tray as if the player pressed Roll
+        const open = await OBR.action.isOpen();
+        if (open || useSettingsStore.getState().autoOpen !== "NEVER") {
+          if (!open) {
+            await OBR.action.open();
+          }
+          const ack = await sendToPanel(
+            { type: "roll", request },
+            open ? OPEN_PANEL_TIMEOUT : OPENING_PANEL_TIMEOUT
+          );
           if (ack?.error) {
             sendRollError(request.source, request.rollId, ack.error);
           }

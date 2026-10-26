@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getDiceToRoll } from "./store";
-import { keepLabel, keepOptions } from "../settings/store";
+import { keepLabel, keepOptions, useSettingsStore } from "../settings/store";
 import { Dice } from "../types/Dice";
 import { Die } from "../types/Die";
 
@@ -25,6 +25,13 @@ describe("getDiceToRoll", () => {
       ["HIGHEST", 2],
       ["HIGHEST", 2],
     ]);
+  });
+});
+
+describe("player settings", () => {
+  it("opens the dice panel for the player's own rolls unless they choose otherwise", () => {
+    expect(useSettingsStore.getState().autoOpen).toBe("MINE");
+    expect(useSettingsStore.getState().othersRolls).toBe("TRAY");
   });
 });
 

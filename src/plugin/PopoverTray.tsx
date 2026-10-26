@@ -2,6 +2,9 @@ import { Environment } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Player } from "@owlbear-rodeo/sdk";
 import { useEffect, useState } from "react";
+import { getDieFromDice } from "../helpers/getDieFromDice";
+import { hasStagedRequest } from "../api/RollRequestListener";
+import { focusPlayerTray } from "./focusPlayerTray";
 
 import Box from "@mui/material/Box";
 import Slide from "@mui/material/Slide";
@@ -54,7 +57,20 @@ export function PopoverTray({
     }
   }, [finishedRolling]);
 
-  const shown = !hidden && !timedOut;
+  // "All rolls": watch it roll in the dice panel instead of the corner
+  const autoOpen = useSettingsStore((state) => state.autoOpen);
+  const rollKey = diceRoll ? getDieFromDice(diceRoll).map((die) => die.id).join() : "";
+  const [openedKey, setOpenedKey] = useState("");
+  const openInPanel =
+    autoOpen === "ALL" && !hidden && !finishedRolling && !hasStagedRequest();
+  useEffect(() => {
+    if (openInPanel && openedKey !== rollKey) {
+      setOpenedKey(rollKey);
+      focusPlayerTray(player.connectionId);
+    }
+  }, [openInPanel, rollKey]);
+
+  const shown = !hidden && !timedOut && !(openInPanel || openedKey === rollKey);
   useEffect(() => {
     if (shown) {
       onToggle(player.connectionId, true);
