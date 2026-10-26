@@ -8,6 +8,7 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
+import Box from "@mui/material/Box";
 
 import { SettingsRounded as SettingsIcon } from "@mui/icons-material";
 
@@ -20,6 +21,8 @@ export function DiceSettings() {
   const isGm = useSettingsStore((state) => state.isGm);
   const othersRolls = useSettingsStore((state) => state.othersRolls);
   const setOthersRolls = useSettingsStore((state) => state.setOthersRolls);
+  const feltColor = useSettingsStore((state) => state.feltColor);
+  const setFeltColor = useSettingsStore((state) => state.setFeltColor);
   const autoOpen = useSettingsStore((state) => state.autoOpen);
   const setAutoOpen = useSettingsStore((state) => state.setAutoOpen);
   const toggleFairnessTester = useDiceControlsStore((state) => state.toggleFairnessTester);
@@ -121,6 +124,43 @@ export function DiceSettings() {
               <ToggleButton value="RESULT">Result only</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
+          <Stack gap={0.5}>
+            <Typography variant="caption" color="text.secondary">
+              Tray felt (just you)
+            </Typography>
+            <Stack direction="row" alignItems="center" gap={1}>
+              {FELTS.map((felt) => (
+                <Tooltip key={felt.name} title={felt.name} disableInteractive>
+                  <Box
+                    component="button"
+                    aria-label={`${felt.name} felt`}
+                    aria-pressed={feltColor === felt.color}
+                    onClick={() => setFeltColor(felt.color)}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border: 2,
+                      borderColor: feltColor === felt.color ? "primary.main" : "divider",
+                      bgcolor: felt.color ?? "#2a150b",
+                      cursor: "pointer",
+                      p: 0,
+                    }}
+                  />
+                </Tooltip>
+              ))}
+              <Tooltip title="Any colour" disableInteractive>
+                <Box
+                  component="input"
+                  type="color"
+                  aria-label="Felt colour"
+                  value={feltColor ?? "#2a150b"}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFeltColor(e.target.value)}
+                  sx={{ width: 32, height: 26, p: 0, border: "none", background: "none", cursor: "pointer" }}
+                />
+              </Tooltip>
+            </Stack>
+          </Stack>
           <Link
             component="button"
             variant="caption"
@@ -138,3 +178,12 @@ export function DiceSettings() {
     </>
   );
 }
+
+/** Felt presets: the original brown, then classic table colours */
+const FELTS: { name: string; color: string | null }[] = [
+  { name: "Original", color: null },
+  { name: "Green", color: "#1f5a32" },
+  { name: "Blue", color: "#1f3b6b" },
+  { name: "Red", color: "#6b1f24" },
+  { name: "Black", color: "#141414" },
+];

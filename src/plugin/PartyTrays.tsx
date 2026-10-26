@@ -12,6 +12,8 @@ import { SlideTransition } from "../controls/SlideTransition";
 import { PlayerTray } from "./PlayerTray";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { getPluginId } from "./getPluginId";
+import { useDiceRollStore } from "../dice/store";
+import { useDiceControlsStore } from "../controls/store";
 
 export function PartyTrays() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -31,6 +33,25 @@ export function PartyTrays() {
   }, [players, focusedTray]);
 
   const theme = useTheme();
+
+  // Your own roll (thrown here, or staged from a sheet) comes back to the front
+  useEffect(() => {
+    const offRoll = useDiceRollStore.subscribe((state, previous) => {
+      const started = state.roll && state.roll !== previous.roll && Object.values(state.rollValues).some((value) => value === null);
+      if (started) {
+        setFocusTray(null);
+      }
+    });
+    const offStaged = useDiceControlsStore.subscribe((state, previous) => {
+      if (state.stagedRequest && state.stagedRequest !== previous.stagedRequest) {
+        setFocusTray(null);
+      }
+    });
+    return () => {
+      offRoll();
+      offStaged();
+    };
+  }, []);
 
   // Setup a broadcast channel so the popover can open a tray
   useEffect(() => {

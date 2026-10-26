@@ -66,6 +66,17 @@ function loadCustomDice(): CustomDice {
   }
 }
 
+const FELT_KEY = getPluginId("feltColor");
+
+function loadFeltColor(): string | null {
+  try {
+    const value = localStorage.getItem(FELT_KEY);
+    return isHexColor(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 interface SettingsState {
   room: RoomSettings;
   setRoom: (room: RoomSettings) => void;
@@ -78,6 +89,9 @@ interface SettingsState {
   /** Per player, in this browser; the colours also travel with each custom die rolled */
   customDice: CustomDice;
   setCustomDice: (value: CustomDice) => void;
+  /** Per player: the tray's felt colour, or null for the original brown */
+  feltColor: string | null;
+  setFeltColor: (value: string | null) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()((set) => ({
@@ -90,6 +104,17 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
       localStorage.setItem(OTHERS_ROLLS_KEY, othersRolls);
     } catch {}
     set({ othersRolls });
+  },
+  feltColor: loadFeltColor(),
+  setFeltColor: (feltColor) => {
+    try {
+      if (feltColor) {
+        localStorage.setItem(FELT_KEY, feltColor);
+      } else {
+        localStorage.removeItem(FELT_KEY);
+      }
+    } catch {}
+    set({ feltColor });
   },
   customDice: loadCustomDice(),
   setCustomDice: (customDice) => {
@@ -111,6 +136,9 @@ if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
     if (event.key === OTHERS_ROLLS_KEY) {
       useSettingsStore.setState({ othersRolls: loadOthersRolls() });
+    }
+    if (event.key === FELT_KEY) {
+      useSettingsStore.setState({ feltColor: loadFeltColor() });
     }
     if (event.key === CUSTOM_DICE_KEY) {
       useSettingsStore.setState({ customDice: loadCustomDice() });
