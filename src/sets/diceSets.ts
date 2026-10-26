@@ -13,7 +13,7 @@ import * as vaesenPreviews from "../previews/vaesen";
 
 import allPreview from "../previews/all.png";
 
-const standardPreviews: Record<DiceStyle, string> = {
+const standardPreviews: Record<Exclude<DiceStyle, "CUSTOM">, string> = {
   GALAXY: galaxyPreviews.D20,
   GEMSTONE: gemstonePreviews.D20,
   GLASS: glassPreviews.D20,
@@ -25,6 +25,7 @@ const standardPreviews: Record<DiceStyle, string> = {
 };
 
 function createStandardSet(style: DiceStyle): DiceSet {
+  const previewImage = style === "CUSTOM" ? "" : standardPreviews[style];
   const id = `${style}_STANDARD`;
   return {
     id,
@@ -38,7 +39,8 @@ function createStandardSet(style: DiceStyle): DiceSet {
       { id: `${id}_D20`, type: "D20", style },
       { id: `${id}_D100`, type: "D100", style },
     ],
-    previewImage: standardPreviews[style],
+    // Custom previews are drawn in the player's colours (see DiceSetPicker)
+    previewImage,
   };
 }
 
@@ -63,4 +65,7 @@ const allSet: DiceSet = {
   previewImage: allPreview,
 };
 
-export const diceSets: DiceSet[] = [...standardSets, allSet];
+/** Solid dice in the player's own colours, optionally a different hue per die */
+export const customSet = createStandardSet("CUSTOM");
+
+export const diceSets: DiceSet[] = [...standardSets, allSet, customSet];

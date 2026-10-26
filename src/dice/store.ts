@@ -11,6 +11,7 @@ import { getRandomDiceThrow } from "../helpers/DiceThrower";
 import { generateDiceId } from "../helpers/generateDiceId";
 import { DiceThrow } from "../types/DiceThrow";
 import { defaultCrit } from "../helpers/getRollOutcome";
+import { paintCustomDice } from "../helpers/customColors";
 import { useSettingsStore } from "../settings/store";
 
 interface DiceRollState {
@@ -58,7 +59,9 @@ export const useDiceRollStore = create<DiceRollState>()(
           roll.crit ??
           roll.request?.crit ??
           defaultCrit(roll, useSettingsStore.getState().room.keepNames === "BOON");
-        state.roll = crit ? { ...roll, crit } : roll;
+        // Custom dice get the player's colours here, so they travel with the roll
+        const painted = paintCustomDice(roll, useSettingsStore.getState().customDice);
+        state.roll = crit ? { ...painted, crit } : painted;
         state.rollValues = {};
         state.rollTransforms = {};
         state.rollThrows = {};

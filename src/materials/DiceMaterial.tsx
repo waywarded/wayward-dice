@@ -7,8 +7,11 @@ import { NebulaMaterial } from "./nebula/NebulaMaterial";
 import { SunriseMaterial } from "./sunrise/SunriseMaterial";
 import { DragonbaneMaterial } from "./dragonbane/DragonbaneMaterial";
 import { VaesenMaterial } from "./vaesen/VaesenMaterial";
+import { CustomMaterial } from "./custom/CustomMaterial";
+import { DieColors } from "../types/Die";
+import { DEFAULT_CUSTOM_DICE } from "../helpers/customColors";
 
-export function DiceMaterial({ diceStyle }: { diceStyle: DiceStyle }) {
+export function DiceMaterial({ diceStyle, colors }: { diceStyle: DiceStyle; colors?: DieColors }) {
   switch (diceStyle) {
     case "GALAXY":
       return <GalaxyMaterial />;
@@ -26,6 +29,8 @@ export function DiceMaterial({ diceStyle }: { diceStyle: DiceStyle }) {
       return <DragonbaneMaterial />;
     case "VAESEN":
       return <VaesenMaterial />;
+    case "CUSTOM":
+      return <CustomMaterial colors={colors ?? DEFAULT_CUSTOM_DICE} />;
     default:
       throw Error(`Dice style ${diceStyle} error: not implemented`);
   }

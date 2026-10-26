@@ -4,11 +4,14 @@ import { resolve } from "path";
 import react from "@vitejs/plugin-react";
 
 declare var __dirname: string;
+declare var process: { env: Record<string, string | undefined> };
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   assetsInclude: ["**/*.glb", "**/*.hdr"],
+  // Some setups (e.g. a dev server started from another folder) miss file changes; VITE_POLL=1 polls instead
+  server: process.env.VITE_POLL ? { watch: { usePolling: true, interval: 300 } } : {},
   build: {
     rollupOptions: {
       input: {

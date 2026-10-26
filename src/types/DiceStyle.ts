@@ -6,4 +6,5 @@ export type DiceStyle =
   | "NEBULA"
   | "SUNRISE"
   | "DRAGONBANE"
-  | "VAESEN";
+  | "VAESEN"
+  | "CUSTOM";

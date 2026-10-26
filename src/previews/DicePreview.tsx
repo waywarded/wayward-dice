@@ -2,6 +2,7 @@ import { styled } from "@mui/material/styles";
 
 import { DiceStyle } from "../types/DiceStyle";
 import { DiceType } from "../types/DiceType";
+import { useCustomPreview } from "./customPreview";
 
 import * as galaxyPreviews from "./galaxy";
 import * as gemstonePreviews from "./gemstone";
@@ -12,7 +13,7 @@ import * as sunrisePreviews from "./sunrise";
 import * as dragonbanePreviews from "./dragonbane";
 import * as vaesenPreviews from "./vaesen";
 
-const previews: Record<DiceStyle, Record<DiceType, string>> = {
+const previews: Record<Exclude<DiceStyle, "CUSTOM">, Record<DiceType, string>> = {
   GALAXY: galaxyPreviews,
   GEMSTONE: gemstonePreviews,
   GLASS: glassPreviews,
@@ -41,6 +42,9 @@ type DiePreviewProps = {
 };
 
 export function DicePreview({ diceType, diceStyle, size }: DiePreviewProps) {
+  if (diceStyle === "CUSTOM") {
+    return <CustomDicePreview diceType={diceType} size={size} />;
+  }
   return (
     <PreviewImage
       src={previews[diceStyle][diceType]}
@@ -48,4 +52,10 @@ export function DicePreview({ diceType, diceStyle, size }: DiePreviewProps) {
       size={size}
     />
   );
+}
+
+/** Custom dice are drawn in the player's colours, so their previews are made on the fly */
+function CustomDicePreview({ diceType, size }: { diceType: DiceType; size?: DiePreviewProps["size"] }) {
+  const src = useCustomPreview(diceType);
+  return <PreviewImage src={src || undefined} alt={`CUSTOM ${diceType} preview`} size={size} />;
 }

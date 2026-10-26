@@ -10,6 +10,8 @@ import { DiceBagIcon } from "../icons/DiceBagIcon";
 
 import { diceSets } from "../sets/diceSets";
 import { useDiceControlsStore } from "./store";
+import { CustomDiceEditor } from "./CustomDiceEditor";
+import { useCustomPreview } from "../previews/customPreview";
 
 const PreviewImage = styled("img")({
   width: "32px",
@@ -22,6 +24,8 @@ export function DiceSetPicker() {
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  // Choosing Custom opens its colours, next to the bag
+  const [editorAnchor, setEditorAnchor] = useState<null | HTMLElement>(null);
   function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget);
   }
@@ -69,6 +73,9 @@ export function DiceSetPicker() {
               aria-label={set.name}
               onClick={() => {
                 changeDiceSet(set);
+                if (set.id === "CUSTOM_STANDARD") {
+                  setEditorAnchor(anchorEl);
+                }
                 handleClose();
               }}
               sx={{
@@ -79,12 +86,17 @@ export function DiceSetPicker() {
                     : undefined,
               }}
             >
-              <PreviewImage src={set.previewImage} />
+              {set.id === "CUSTOM_STANDARD" ? (
+                <CustomSetPreview />
+              ) : (
+                <PreviewImage src={set.previewImage} />
+              )}
             </IconButton>
             </Tooltip>
           ))}
         </Stack>
       </Menu>
+      <CustomDiceEditor anchorEl={editorAnchor} onClose={() => setEditorAnchor(null)} />
     </>
   );
 }
@@ -93,4 +105,9 @@ export function DiceSetPicker() {
 function setTitle(name: string) {
   const title = name.replace(/ dice$/, "");
   return title === "all" ? "All styles" : title.charAt(0).toUpperCase() + title.slice(1);
+}
+
+function CustomSetPreview() {
+  const src = useCustomPreview("D20");
+  return <PreviewImage src={src || undefined} alt="" />;
 }

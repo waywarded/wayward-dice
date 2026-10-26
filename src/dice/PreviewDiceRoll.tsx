@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 
 import { getDiceToRoll, useDiceControlsStore } from "../controls/store";
+import { paintCustomDice } from "../helpers/customColors";
+import { useSettingsStore } from "../settings/store";
 import { DiceType } from "../types/DiceType";
 import { getDieFromDice } from "../helpers/getDieFromDice";
 import { DiceRoll } from "../types/DiceRoll";
@@ -20,14 +22,16 @@ export function PreviewDiceRoll() {
   const counts = useDiceControlsStore((state) => state.diceCounts);
   const advantage = useDiceControlsStore((state) => state.diceAdvantage);
   const advantageCount = useDiceControlsStore((state) => state.diceAdvantageCount);
+  const custom = useSettingsStore((state) => state.customDice);
   const diceById = useDiceControlsStore((state) => state.diceById);
   const defaultDiceCounts = useDiceControlsStore(
     (state) => state.defaultDiceCounts
   );
 
   const diceRoll = useMemo<DiceRoll>(() => {
-    return { dice: getDiceToRoll(counts, advantage, diceById, advantageCount) };
-  }, [counts, advantage, diceById, advantageCount]);
+    // Custom dice show the colours they'll roll in, rainbow included
+    return paintCustomDice({ dice: getDiceToRoll(counts, advantage, diceById, advantageCount) }, custom);
+  }, [counts, advantage, diceById, advantageCount, custom]);
 
   const dice = useMemo(() => getDieFromDice(diceRoll), [diceRoll]);
 

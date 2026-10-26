@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Advantage } from "../controls/store";
 import { getPluginId } from "../plugin/getPluginId";
+import { CustomDice, DEFAULT_CUSTOM_DICE, isHexColor } from "../helpers/customColors";
 
 /** What the keep-highest/lowest toggle is called in this room */
 export type KeepNames = "ADVANTAGE" | "BOON";
@@ -50,6 +51,21 @@ function loadAutoOpen(): AutoOpen {
   }
 }
 
+const CUSTOM_DICE_KEY = getPluginId("customDice");
+
+function loadCustomDice(): CustomDice {
+  try {
+    const v = JSON.parse(localStorage.getItem(CUSTOM_DICE_KEY) ?? "null") as Partial<CustomDice> | null;
+    return {
+      base: isHexColor(v?.base) ? v.base : DEFAULT_CUSTOM_DICE.base,
+      ink: isHexColor(v?.ink) ? v.ink : DEFAULT_CUSTOM_DICE.ink,
+      rainbow: v?.rainbow === true,
+    };
+  } catch {
+    return DEFAULT_CUSTOM_DICE;
+  }
+}
+
 interface SettingsState {
   room: RoomSettings;
   setRoom: (room: RoomSettings) => void;
@@ -59,6 +75,9 @@ interface SettingsState {
   setOthersRolls: (value: OthersRolls) => void;
   autoOpen: AutoOpen;
   setAutoOpen: (value: AutoOpen) => void;
+  /** Per player, in this browser; the colours also travel with each custom die rolled */
+  customDice: CustomDice;
+  setCustomDice: (value: CustomDice) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()((set) => ({
@@ -71,6 +90,13 @@ export const useSettingsStore = create<SettingsState>()((set) => ({
       localStorage.setItem(OTHERS_ROLLS_KEY, othersRolls);
     } catch {}
     set({ othersRolls });
+  },
+  customDice: loadCustomDice(),
+  setCustomDice: (customDice) => {
+    try {
+      localStorage.setItem(CUSTOM_DICE_KEY, JSON.stringify(customDice));
+    } catch {}
+    set({ customDice });
   },
   autoOpen: loadAutoOpen(),
   setAutoOpen: (autoOpen) => {
@@ -85,6 +111,9 @@ if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
     if (event.key === OTHERS_ROLLS_KEY) {
       useSettingsStore.setState({ othersRolls: loadOthersRolls() });
+    }
+    if (event.key === CUSTOM_DICE_KEY) {
+      useSettingsStore.setState({ customDice: loadCustomDice() });
     }
     if (event.key === AUTO_OPEN_KEY) {
       useSettingsStore.setState({ autoOpen: loadAutoOpen() });
