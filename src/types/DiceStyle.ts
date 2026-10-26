@@ -5,5 +5,5 @@ export type DiceStyle =
   | "IRON"
   | "NEBULA"
   | "SUNRISE"
-  | "SUNSET"
-  | "WALNUT";
+  | "DRAGONBANE"
+  | "VAESEN";

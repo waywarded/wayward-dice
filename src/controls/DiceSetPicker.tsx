@@ -4,6 +4,9 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Menu from "@mui/material/Menu";
 import { styled } from "@mui/material/styles";
+import Tooltip from "@mui/material/Tooltip";
+
+import { DiceBagIcon } from "../icons/DiceBagIcon";
 
 import { diceSets } from "../sets/diceSets";
 import { useDiceControlsStore } from "./store";
@@ -28,20 +31,19 @@ export function DiceSetPicker() {
 
   return (
     <>
-      <IconButton
-        aria-label="change dice set"
-        id="dice-set-button"
-        aria-controls={open ? "dice-set-menu" : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? "true" : undefined}
-        onClick={handleClick}
-        sx={{
-          padding: "4px",
-          backgroundColor: "rgba(255, 255, 255, 0.16) !important",
-        }}
-      >
-        <PreviewImage src={diceSet.previewImage} />
-      </IconButton>
+      {/* A bag, not a die: the column above already shows the chosen set's dice */}
+      <Tooltip title="Dice set" placement="top" disableInteractive>
+        <IconButton
+          aria-label="change dice set"
+          id="dice-set-button"
+          aria-controls={open ? "dice-set-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          onClick={handleClick}
+        >
+          <DiceBagIcon />
+        </IconButton>
+      </Tooltip>
       <Menu
         id="dice-set-menu"
         anchorEl={anchorEl}
@@ -51,20 +53,19 @@ export function DiceSetPicker() {
           "aria-labelledby": "dice-set-button",
         }}
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "center",
+          vertical: "center",
+          horizontal: "right",
         }}
         transformOrigin={{
-          vertical: "top",
-          horizontal: "center",
+          vertical: "center",
+          horizontal: "left",
         }}
-        sx={{ my: 1 }}
         marginThreshold={0}
       >
         <Stack gap={1} alignItems="center" p="2px">
           {diceSets.map((set) => (
+            <Tooltip key={set.id} title={setTitle(set.name)} placement="right" disableInteractive>
             <IconButton
-              key={set.id}
               aria-label={set.name}
               onClick={() => {
                 changeDiceSet(set);
@@ -80,9 +81,16 @@ export function DiceSetPicker() {
             >
               <PreviewImage src={set.previewImage} />
             </IconButton>
+            </Tooltip>
           ))}
         </Stack>
       </Menu>
     </>
   );
+}
+
+/** "vaesen dice" → "Vaesen"; "all" → "All styles" */
+function setTitle(name: string) {
+  const title = name.replace(/ dice$/, "");
+  return title === "all" ? "All styles" : title.charAt(0).toUpperCase() + title.slice(1);
 }

@@ -4,7 +4,7 @@ import { Die } from "../types/Die";
 export function getDieDensity(die: Die): number {
   if (die.style === "IRON") {
     return 2;
-  } else if (die.style === "WALNUT" || die.style === "GLASS") {
+  } else if (die.style === "VAESEN" || die.style === "GLASS") {
     return 1.5;
   } else {
     return 1;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Menu from "@mui/material/Menu";
 import Tooltip from "@mui/material/Tooltip";
@@ -13,6 +13,7 @@ import { useDiceControlsStore } from "./store";
 import { useDiceRollStore } from "../dice/store";
 import { useSettingsStore } from "../settings/store";
 
+/** "+/-" under the Roll arrow: bonus, keep highest/lowest and counting, for the roll being picked */
 export function DiceExtras() {
   const bonus = useDiceControlsStore((state) => state.diceBonus);
   const setBonus = useDiceControlsStore((state) => state.setDiceBonus);
@@ -46,20 +47,33 @@ export function DiceExtras() {
     <>
       <Tooltip
         title={room.keepNames === "BOON" ? "Bonus, boons, count" : "Bonus, advantage, count"}
-        placement="top"
+        // Below, so it never covers the Roll arrow above
+        placement="bottom"
         disableInteractive
       >
-        <IconButton
-          aria-label="more"
+        <Button
+          aria-label="Bonus and modifiers"
           id="more-button"
           aria-controls={open ? "more-menu" : undefined}
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
           onClick={handleClick}
-          sx={{ fontSize: "18px" }}
+          variant="contained"
+          color="inherit"
+          size="small"
+          sx={{
+            minWidth: 0,
+            px: 1.5,
+            borderRadius: "16px",
+            fontSize: "15px",
+            lineHeight: "22px",
+            bgcolor: "background.paper",
+            color: "text.primary",
+            ":hover": { bgcolor: "background.default" },
+          }}
         >
-          <span style={{ width: "24px", height: "24px" }}>+/-</span>
-        </IconButton>
+          +/-
+        </Button>
       </Tooltip>
       <Menu
         id="more-menu"
@@ -70,12 +84,12 @@ export function DiceExtras() {
           "aria-labelledby": "more-button",
         }}
         anchorOrigin={{
-          vertical: "center",
-          horizontal: "right",
+          vertical: "bottom",
+          horizontal: "center",
         }}
         transformOrigin={{
-          vertical: "center",
-          horizontal: "left",
+          vertical: "top",
+          horizontal: "center",
         }}
       >
         <Stack>

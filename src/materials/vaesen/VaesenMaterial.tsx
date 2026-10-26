@@ -5,7 +5,8 @@ import orm from "./orm.jpg";
 import normal from "./normal.jpg";
 import { gltfTexture } from "../../helpers/gltfTexture";
 
-export function WalnutMaterial(
+/** Old bone, with ringed pips and a swirl for the 6 on the d6 (scripts/dice-textures) */
+export function VaesenMaterial(
   props: JSX.IntrinsicElements["meshStandardMaterial"]
 ) {
   const [albedoMap, ormMap, normalMap] = useTexture(

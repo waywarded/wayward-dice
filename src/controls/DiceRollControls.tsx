@@ -19,6 +19,7 @@ import { RerollDiceIcon } from "../icons/RerollDiceIcon";
 import { GradientOverlay } from "./GradientOverlay";
 import { useDiceRollStore } from "../dice/store";
 import { DiceResults } from "./DiceResults";
+import { DiceExtras } from "./DiceExtras";
 import { getDiceToRoll, getPickedRoll, useDiceControlsStore } from "./store";
 import { countRuleLabel } from "../types/Dice";
 import { getPushDice } from "../helpers/getRollOutcome";
@@ -272,6 +273,18 @@ function DicePickedControls() {
           </Button>
         </Box>
       </ButtonBase>
+      {/* Beside the tray-wide Roll button, not inside it, so opening it never throws */}
+      <Box
+        component="div"
+        sx={{
+          position: "absolute",
+          top: "calc(50% + 40px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <DiceExtras />
+      </Box>
       <GradientOverlay top />
       <Stack
         sx={{

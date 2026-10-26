@@ -9,8 +9,8 @@ import * as glassPreviews from "./glass";
 import * as ironPreviews from "./iron";
 import * as nebulaPreviews from "./nebula";
 import * as sunrisePreviews from "./sunrise";
-import * as sunsetPreviews from "./sunset";
-import * as walnutPreviews from "./walnut";
+import * as dragonbanePreviews from "./dragonbane";
+import * as vaesenPreviews from "./vaesen";
 
 const previews: Record<DiceStyle, Record<DiceType, string>> = {
   GALAXY: galaxyPreviews,
@@ -19,8 +19,8 @@ const previews: Record<DiceStyle, Record<DiceType, string>> = {
   IRON: ironPreviews,
   NEBULA: nebulaPreviews,
   SUNRISE: sunrisePreviews,
-  SUNSET: sunsetPreviews,
-  WALNUT: walnutPreviews,
+  DRAGONBANE: dragonbanePreviews,
+  VAESEN: vaesenPreviews,
 };
 
 interface PreviewImageProps {

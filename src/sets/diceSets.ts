@@ -8,8 +8,8 @@ import * as glassPreviews from "../previews/glass";
 import * as ironPreviews from "../previews/iron";
 import * as nebulaPreviews from "../previews/nebula";
 import * as sunrisePreviews from "../previews/sunrise";
-import * as sunsetPreviews from "../previews/sunset";
-import * as walnutPreviews from "../previews/walnut";
+import * as dragonbanePreviews from "../previews/dragonbane";
+import * as vaesenPreviews from "../previews/vaesen";
 
 import allPreview from "../previews/all.png";
 
@@ -20,8 +20,8 @@ const standardPreviews: Record<DiceStyle, string> = {
   IRON: ironPreviews.D20,
   NEBULA: nebulaPreviews.D20,
   SUNRISE: sunrisePreviews.D20,
-  SUNSET: sunsetPreviews.D20,
-  WALNUT: walnutPreviews.D20,
+  DRAGONBANE: dragonbanePreviews.D20,
+  VAESEN: vaesenPreviews.D6,
 };
 
 function createStandardSet(style: DiceStyle): DiceSet {
@@ -49,8 +49,8 @@ const standardSets = [
   createStandardSet("IRON"),
   createStandardSet("NEBULA"),
   createStandardSet("SUNRISE"),
-  createStandardSet("SUNSET"),
-  createStandardSet("WALNUT"),
+  createStandardSet("DRAGONBANE"),
+  createStandardSet("VAESEN"),
 ];
 
 const allSet: DiceSet = {
