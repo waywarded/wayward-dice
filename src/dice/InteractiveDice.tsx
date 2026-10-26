@@ -181,7 +181,7 @@ export function InteractiveDice(
   });
 
   return (
-    <animated.group position={position}>
+    <animated.group position={position as any /* react-spring 9 types predate @types/three 0.18x */}>
       <Dice onPointerDown={handlePointerDown} ref={diceRef} {...props}></Dice>
     </animated.group>
   );

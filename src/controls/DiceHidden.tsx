@@ -1,8 +1,8 @@
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 
-import HiddenOnIcon from "@mui/icons-material/VisibilityOffRounded";
-import HiddenOffIcon from "@mui/icons-material/VisibilityRounded";
+import { VisibilityOffRounded as HiddenOnIcon } from "@mui/icons-material";
+import { VisibilityRounded as HiddenOffIcon } from "@mui/icons-material";
 
 import { useDiceControlsStore } from "./store";
 import { useDiceRollStore } from "../dice/store";

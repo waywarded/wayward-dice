@@ -7,8 +7,8 @@ import Chip from "@mui/material/Chip";
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
 
-import HistoryIcon from "@mui/icons-material/SavedSearchRounded";
-import NoHistoryIcon from "@mui/icons-material/ManageSearchRounded";
+import { SavedSearchRounded as HistoryIcon } from "@mui/icons-material";
+import { ManageSearchRounded as NoHistoryIcon } from "@mui/icons-material";
 
 import { useDiceRollStore } from "../dice/store";
 import { RecentRoll, useDiceHistoryStore } from "./history";

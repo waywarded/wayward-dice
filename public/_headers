@@ -1,0 +1,3 @@
+# Cloudflare Pages: Owlbear Rodeo fetches the manifest and icons from its own origin
+/*
+  Access-Control-Allow-Origin: *

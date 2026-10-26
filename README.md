@@ -1,3 +1,13 @@
+# Wayward Dice
+
+A fork of [Owlbear Rodeo's Dice](https://github.com/owlbear-rodeo/dice) (GPL-3.0) that adds a roll API so character sheets and other extensions can throw the 3D dice, or stage a roll in the dice panel for the player to adjust. See [docs/roll-api.md](docs/roll-api.md).
+
+Hosted at <https://dice.plotloot.com/>; install it in Owlbear Rodeo with `https://dice.plotloot.com/manifest.json`. It uses its own metadata ids, so it can sit next to the official Dice in one room.
+
+Below is the upstream README, with the build instructions updated for this fork. Changes in this fork are copyright Wayward Distractions, under the same licence.
+
+---
+
 # Owlbear Rodeo Dice
 
 Beautiful 3D dice extension for d20 based systems
@@ -26,19 +36,11 @@ To try out the dice roller outside of Owlbear Rodeo you can head to <https://dic
 
 ## Building
 
-This project uses [Yarn](https://yarnpkg.com/) as a package manager.
+This project uses [pnpm](https://pnpm.io/) (Node 22 or later).
 
-To install all the dependencies run:
-
-`yarn`
-
-To run in a development mode run:
-
-`yarn dev`
-
-To make a production build run:
-
-`yarn build`
+- `pnpm install`
+- `pnpm dev` runs a development server: `/` is the standalone roller, and `/dev/obr-host.html` is a fake Owlbear Rodeo host that loads the background popover, the dice panel and a test "sheet" that sends roll requests
+- `pnpm build` makes a static site in `dist/`
 
 ## Project Structure
 

@@ -1,3 +1,4 @@
+import type * as THREE from "three";
 import React from "react";
 import { Die } from "../types/Die";
 

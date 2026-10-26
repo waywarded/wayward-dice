@@ -1,6 +1,6 @@
-import create from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { WritableDraft } from "immer/dist/types/types-external";
+import type { WritableDraft } from "immer";
 
 import { DiceRoll } from "../types/DiceRoll";
 import { isDie } from "../types/Die";

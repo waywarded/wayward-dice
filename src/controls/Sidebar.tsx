@@ -14,6 +14,8 @@ import { PluginGate } from "../plugin/PluginGate";
 import { DiceRollSync } from "../plugin/DiceRollSync";
 import { PartyTrays } from "../plugin/PartyTrays";
 import { ResizeObserver as PluginResizeObserver } from "../plugin/ResizeObserver";
+import { PanelApiBridge } from "../api/PanelApiBridge";
+import { RollResultReporter } from "../api/RollResultReporter";
 
 export function Sidebar() {
   return (
@@ -37,6 +39,8 @@ export function Sidebar() {
         <PluginGate>
           <Divider flexItem sx={{ mx: 1 }} />
           <DiceRollSync />
+          <PanelApiBridge />
+          <RollResultReporter />
           <PartyTrays />
           <PluginResizeObserver />
         </PluginGate>

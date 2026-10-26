@@ -6,7 +6,7 @@ import Stack from "@mui/material/Stack";
 import IconButton from "@mui/material/IconButton";
 import { useTheme } from "@mui/material/styles";
 
-import CloseIcon from "@mui/icons-material/ChevronLeftRounded";
+import { ChevronLeftRounded as CloseIcon } from "@mui/icons-material";
 
 import { SlideTransition } from "../controls/SlideTransition";
 import { PlayerTray } from "./PlayerTray";

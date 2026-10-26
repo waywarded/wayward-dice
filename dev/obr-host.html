@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fake OBR host</title>
+    <!--
+      Development only (not part of the build): a tiny stand-in for Owlbear Rodeo
+      that loads the background page, its popover and the action panel as iframes
+      and answers the SDK calls they make, plus a fake "sheet" that sends roll
+      requests over broadcast. Open http://localhost:5180/dev/obr-host.html
+    -->
+    <style>
+      body { margin: 0; font: 14px system-ui, sans-serif; background: #3a3f55; color: #eee; height: 100vh; overflow: hidden; }
+      #sheet { position: absolute; left: 16px; top: 16px; width: 380px; display: flex; flex-direction: column; gap: 6px; }
+      #sheet button { text-align: left; padding: 6px 10px; }
+      #log { margin-top: 8px; height: 360px; overflow: auto; background: #222639; padding: 8px; font: 12px ui-monospace, monospace; white-space: pre-wrap; }
+      #action { position: absolute; right: 16px; top: 16px; width: 375px; height: 700px; border: 0; border-radius: 8px; background: #222639; }
+      #popover { position: absolute; right: 0; bottom: 0; width: 0; height: 0; border: 0; }
+      #background { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="sheet">
+      <strong>Fake sheet (another extension)</strong>
+      <button data-n="2d6+1" data-l="Hilda: Damage">Roll 2d6+1</button>
+      <button data-n="d20" data-l="Hilda: Swords">Roll d20 (roll-under)</button>
+      <button data-n="2d20kh1+3" data-l="Attack with advantage">Roll 2d20kh1+3</button>
+      <button data-n="5d6" data-l="Vaesen pool" data-v="gm">Roll 5d6 hidden (GM)</button>
+      <button data-n="d100" data-l="Percentile">Roll d100</button>
+      <button data-n="d20+3" data-l="Hilda: Swords" data-m="stage">Stage d20+3</button>
+      <button data-n="2d20kl1" data-l="Bane" data-m="stage">Stage 2d20kl1</button>
+      <button data-n="3d7" data-l="Bad">Roll 3d7 (error)</button>
+      <button id="ready">isReady?</button>
+      <button id="toggle">Toggle dice panel</button>
+      <div id="log"></div>
+    </div>
+    <iframe id="popover" allowtransparency="true"></iframe>
+    <script type="module">
+      const origin = location.origin;
+      const room = "room1";
+      const obrref = btoa(`${origin} ${room}`);
+      const me = { id: "player-1", connectionId: "conn-1", name: "Hilda", role: "PLAYER", color: "#ff5c5c", syncView: false, selection: undefined, metadata: {} };
+      const theme = {
+        mode: "DARK",
+        primary: { light: "#c2c8ff", main: "#bb99ff", dark: "#8061cc", contrastText: "#000" },
+        secondary: { light: "#ffb2b2", main: "#ee99ff", dark: "#bb66cc", contrastText: "#000" },
+        background: { default: "#1e2231", paper: "#222639" },
+        text: { primary: "#fff", secondary: "rgba(255,255,255,0.7)", disabled: "rgba(255,255,255,0.5)" },
+      };
+
+      const frames = new Map(); // ref -> iframe
+      const subs = new Map(); // ref -> Set of event ids subscribed
+      const logEl = document.getElementById("log");
+      const log = (...a) => { logEl.textContent = `${new Date().toLocaleTimeString()} ${a.join(" ")}\n` + logEl.textContent; };
+
+      function mount(ref, el, path) {
+        const url = new URL(path, origin);
+        url.searchParams.set("obrref", obrref);
+        el.addEventListener("load", () => post(ref, "OBR_READY", { ref, userId: me.id }), { once: true });
+        el.src = url.toString();
+        frames.set(ref, el);
+        subs.set(ref, new Set());
+      }
+      function post(ref, id, data) { frames.get(ref)?.contentWindow?.postMessage({ id, data }, "*"); }
+      function emit(event, data) { for (const [ref, s] of subs) if (s.has(event)) post(ref, event, data); }
+
+      // The fake sheet listens on its own channels like any extension would
+      const hostChannels = new Map();
+      function deliverBroadcast(channel, data) {
+        const event = { data, connectionId: me.connectionId };
+        for (const [ref, s] of subs) if (s.has(`OBR_BROADCAST_MESSAGE_${channel}`)) post(ref, `OBR_BROADCAST_MESSAGE_${channel}`, event);
+        hostChannels.get(channel)?.(data);
+      }
+
+      let actionOpen = false;
+      const actionEl = () => document.getElementById("action");
+      function setActionOpen(open) {
+        if (open === actionOpen) return;
+        actionOpen = open;
+        // Like OBR, the panel's iframe only exists while it's open
+        if (open) {
+          const el = document.createElement("iframe");
+          el.id = "action";
+          document.body.appendChild(el);
+          mount("action", el, "/");
+        } else {
+          actionEl()?.remove();
+          frames.delete("action");
+          subs.delete("action");
+        }
+        emit("OBR_ACTION_IS_OPEN_EVENT_CHANGE", { isOpen: open });
+      }
+
+      const popoverEl = document.getElementById("popover");
+
+      window.addEventListener("message", (e) => {
+        const m = e.data;
+        if (!m || typeof m.id !== "string" || !m.ref) return;
+        const ref = m.ref;
+        const reply = (data) => post(ref, `${m.id}_RESPONSE${m.nonce ?? ""}`, data);
+        const d = m.data ?? {};
+        switch (m.id) {
+          case "OBR_BROADCAST_SUBSCRIBE": subs.get(ref)?.add(`OBR_BROADCAST_MESSAGE_${d.channel}`); return;
+          case "OBR_BROADCAST_UNSUBSCRIBE": subs.get(ref)?.delete(`OBR_BROADCAST_MESSAGE_${d.channel}`); return;
+          case "OBR_BROADCAST_SEND_MESSAGE": deliverBroadcast(d.channel, d.data); return reply({});
+          case "OBR_PLAYER_SUBSCRIBE": subs.get(ref)?.add("OBR_PLAYER_EVENT_CHANGE"); return;
+          case "OBR_PARTY_SUBSCRIBE": subs.get(ref)?.add("OBR_PARTY_EVENT_CHANGE"); return;
+          case "OBR_THEME_SUBSCRIBE": subs.get(ref)?.add("OBR_THEME_EVENT_CHANGE"); return;
+          case "OBR_ACTION_IS_OPEN_SUBSCRIBE": subs.get(ref)?.add("OBR_ACTION_IS_OPEN_EVENT_CHANGE"); return;
+          case "OBR_PLAYER_GET_NAME": return reply({ name: me.name });
+          case "OBR_PLAYER_GET_ID": return reply({ id: me.id });
+          case "OBR_PLAYER_GET_ROLE": return reply({ role: me.role });
+          case "OBR_PLAYER_GET_COLOR": return reply({ color: me.color });
+          case "OBR_PLAYER_GET_CONNECTION_ID": return reply({ connectionId: me.connectionId });
+          case "OBR_PLAYER_GET_METADATA": return reply({ metadata: me.metadata });
+          case "OBR_PLAYER_SET_METADATA":
+            Object.assign(me.metadata, d.update);
+            emit("OBR_PLAYER_EVENT_CHANGE", { player: me });
+            return reply({});
+          case "OBR_PARTY_GET_PLAYERS": return reply({ players: [] });
+          case "OBR_THEME_GET_THEME": return reply({ theme });
+          case "OBR_ACTION_GET_IS_OPEN": return reply({ isOpen: actionOpen });
+          case "OBR_ACTION_OPEN": setActionOpen(true); return reply({});
+          case "OBR_ACTION_CLOSE": setActionOpen(false); return reply({});
+          case "OBR_POPOVER_OPEN": mount("popover", popoverEl, d.url); return reply({});
+          case "OBR_POPOVER_SET_WIDTH": popoverEl.style.width = `${d.width}px`; return reply({});
+          case "OBR_POPOVER_SET_HEIGHT": popoverEl.style.height = `${d.height}px`; return reply({});
+          default:
+            if (m.nonce) reply({});
+        }
+      });
+
+      // The fake sheet: requests out, answers in
+      hostChannels.set("fake-sheet/roll-result", (r) => log("RESULT", JSON.stringify(r)));
+      hostChannels.set("fake-sheet/roll-error", (r) => log("ERROR", JSON.stringify(r)));
+      hostChannels.set("wayward-dice/isReady", (r) => { if (r?.ready) log("READY", JSON.stringify(r)); });
+      for (const b of document.querySelectorAll("button[data-n]")) {
+        b.onclick = () => {
+          const request = { rollId: crypto.randomUUID(), source: "fake-sheet", notation: b.dataset.n, label: b.dataset.l, visibility: b.dataset.v ?? "all", mode: b.dataset.m ?? "roll" };
+          log("SEND", JSON.stringify(request));
+          deliverBroadcast("wayward-dice/roll-request", request);
+        };
+      }
+      document.getElementById("ready").onclick = () => deliverBroadcast("wayward-dice/isReady", { requestId: crypto.randomUUID(), timestamp: Date.now() });
+      document.getElementById("toggle").onclick = () => setActionOpen(!actionOpen);
+      window.fakeObr = { me, deliverBroadcast, setActionOpen, log };
+
+      const bg = document.createElement("iframe");
+      bg.id = "background";
+      document.body.appendChild(bg);
+      mount("background", bg, "/background.html");
+    </script>
+  </body>
+</html>

@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 
 import { PopoverTray } from "./PopoverTray";
 import { getPluginId } from "./getPluginId";
+import { SelfPopoverTray } from "./SelfPopoverTray";
 
 export function PopoverTrays() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -14,12 +15,18 @@ export function PopoverTrays() {
   }, []);
   useEffect(() => OBR.party.onChange(setPlayers), []);
 
+  const [name, setName] = useState("");
+  useEffect(() => {
+    OBR.player.getName().then(setName);
+    return OBR.player.onChange((player) => setName(player.name));
+  }, []);
+
   const [visibleTrays, setVisibleTrays] = useState<string[]>([]);
 
   useEffect(() => {
     const playerIds = players.map((p) => p.connectionId);
     setVisibleTrays((visible) =>
-      visible.filter((id) => playerIds.includes(id))
+      visible.filter((id) => id === "self" || playerIds.includes(id))
     );
   }, [players]);
 
@@ -66,6 +73,11 @@ export function PopoverTrays() {
       top="0"
       overflow="hidden"
     >
+      <SelfPopoverTray
+        name={name}
+        onToggle={handleTrayToggle}
+        onOpen={() => OBR.action.open()}
+      />
       {players.map((player) => (
         <PopoverTray
           key={player.connectionId}

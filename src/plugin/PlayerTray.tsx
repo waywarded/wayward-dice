@@ -15,7 +15,7 @@ import Fade from "@mui/material/Fade";
 import Backdrop from "@mui/material/Backdrop";
 import Tooltip from "@mui/material/Tooltip";
 
-import HiddenIcon from "@mui/icons-material/VisibilityOffRounded";
+import { VisibilityOffRounded as HiddenIcon } from "@mui/icons-material";
 
 import environment from "../environment.hdr";
 import { GradientOverlay } from "../controls/GradientOverlay";

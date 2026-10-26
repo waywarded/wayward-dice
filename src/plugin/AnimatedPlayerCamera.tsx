@@ -38,7 +38,7 @@ export function AnimatedPlayerCamera({
 
   return (
     <>
-      <animated.group position={position}>
+      <animated.group position={position as any /* react-spring 9 types predate @types/three 0.18x */}>
         <PerspectiveCamera
           makeDefault
           fov={28}

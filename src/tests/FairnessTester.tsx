@@ -1,7 +1,7 @@
-import CloseIcon from "@mui/icons-material/CloseRounded";
-import DownloadRounded from "@mui/icons-material/DownloadRounded";
-import ExpandLess from "@mui/icons-material/ExpandLessRounded";
-import InfoRounded from "@mui/icons-material/InfoRounded";
+import { CloseRounded as CloseIcon } from "@mui/icons-material";
+import { DownloadRounded } from "@mui/icons-material";
+import { ExpandLessRounded as ExpandLess } from "@mui/icons-material";
+import { InfoRounded } from "@mui/icons-material";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";

@@ -9,8 +9,8 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
 import Stack from "@mui/material/Stack";
 
-import IncreaseIcon from "@mui/icons-material/AddCircleOutlineRounded";
-import DecreaseIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
+import { AddCircleOutlineRounded as IncreaseIcon } from "@mui/icons-material";
+import { RemoveCircleOutlineRounded as DecreaseIcon } from "@mui/icons-material";
 
 type DieBonusProps = {
   bonus: number;

@@ -8,6 +8,9 @@ import { GlobalStyles } from "./GlobalStyles";
 import { PluginThemeProvider } from "./plugin/PluginThemeProvider";
 import { PopoverTrays } from "./plugin/PopoverTrays";
 import { PluginGate } from "./plugin/PluginGate";
+import { DiceRollSync } from "./plugin/DiceRollSync";
+import { RollRequestListener } from "./api/RollRequestListener";
+import { RollResultReporter } from "./api/RollResultReporter";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -16,6 +19,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <GlobalStyles />
       <PluginGate>
         <PopoverTrays />
+        <RollRequestListener />
+        <RollResultReporter />
+        <DiceRollSync />
       </PluginGate>
     </PluginThemeProvider>
   </React.StrictMode>

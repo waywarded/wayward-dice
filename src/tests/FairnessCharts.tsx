@@ -1,4 +1,4 @@
-import VerifiedRounded from "@mui/icons-material/VerifiedRounded";
+import { VerifiedRounded } from "@mui/icons-material";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";

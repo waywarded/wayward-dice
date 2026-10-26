@@ -10,9 +10,9 @@ import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import Typography from "@mui/material/Typography";
 
-import CloseIcon from "@mui/icons-material/CloseRounded";
-import HiddenIcon from "@mui/icons-material/VisibilityOffRounded";
-import RollIcon from "@mui/icons-material/ArrowForwardRounded";
+import { CloseRounded as CloseIcon } from "@mui/icons-material";
+import { VisibilityOffRounded as HiddenIcon } from "@mui/icons-material";
+import { ArrowForwardRounded as RollIcon } from "@mui/icons-material";
 
 import { RerollDiceIcon } from "../icons/RerollDiceIcon";
 
@@ -23,6 +23,7 @@ import { getDiceToRoll, useDiceControlsStore } from "./store";
 import { DiceType } from "../types/DiceType";
 import { useDiceHistoryStore } from "./history";
 import { Die } from "../types/Die";
+import { sendRollError } from "../api/protocol";
 
 const jiggle = keyframes`
 0% { transform: translate(0, 0) rotate(0deg); }
@@ -102,12 +103,28 @@ function DicePickedControls() {
 
   const pushRecentRoll = useDiceHistoryStore((state) => state.pushRecentRoll);
 
+  const staged = useDiceControlsStore((state) => state.stagedRequest);
+  const setStaged = useDiceControlsStore((state) => state.setStagedRequest);
+
   function handleRoll() {
     if (hasDice && rollPressTime) {
       const dice = getDiceToRoll(counts, advantage, diceById);
       const activeTimeSeconds = (performance.now() - rollPressTime) / 1000;
       const speedMultiplier = Math.max(1, Math.min(10, activeTimeSeconds * 2));
-      startRoll({ dice, bonus, hidden }, speedMultiplier);
+      const modified =
+        !!staged &&
+        (staged.bonus !== bonus ||
+          staged.advantage !== advantage ||
+          Object.keys({ ...counts, ...staged.counts }).some(
+            (id) => (counts[id] ?? 0) !== (staged.counts[id] ?? 0)
+          ));
+      startRoll(
+        staged
+          ? { dice, bonus, hidden, request: staged.meta, modified }
+          : { dice, bonus, hidden },
+        speedMultiplier
+      );
+      setStaged(null);
 
       const rolledDiceById: Record<string, Die> = {};
       for (const id of Object.keys(counts)) {
@@ -257,6 +274,10 @@ function DicePickedControls() {
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
+              if (staged) {
+                sendRollError(staged.meta.source, staged.meta.rollId, "Cancelled");
+                setStaged(null);
+              }
               handleReset();
             }}
           >
@@ -264,6 +285,23 @@ function DicePickedControls() {
           </IconButton>
         </Tooltip>
       </Stack>
+      {staged?.meta.label && (
+        <Typography
+          variant="subtitle1"
+          color="white"
+          noWrap
+          sx={{
+            position: "absolute",
+            bottom: 24,
+            left: 24,
+            right: 24,
+            textAlign: "center",
+            pointerEvents: "none",
+          }}
+        >
+          {staged.meta.label}
+        </Typography>
+      )}
       <Stack
         sx={{
           position: "absolute",

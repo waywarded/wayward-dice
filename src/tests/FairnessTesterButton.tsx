@@ -2,7 +2,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { useDiceControlsStore } from "../controls/store";
 import IconButton from "@mui/material/IconButton";
 
-import FairnessIcon from "@mui/icons-material/BalanceRounded";
+import { BalanceRounded as FairnessIcon } from "@mui/icons-material";
 
 export function FairnessTesterButton() {
   const toggleFairnessTester = useDiceControlsStore(

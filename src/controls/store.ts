@@ -1,13 +1,22 @@
-import create from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { diceSets } from "../sets/diceSets";
 import { Dice } from "../types/Dice";
 import { DiceSet } from "../types/DiceSet";
 import { Die } from "../types/Die";
 import { generateDiceId } from "../helpers/generateDiceId";
+import type { RollRequestMeta } from "../api/protocol";
 
 export type Advantage = "ADVANTAGE" | "DISADVANTAGE" | null;
 export type DiceCounts = Record<string, number>;
+
+/** A roll another extension filled in, waiting for the player to press Roll */
+export interface StagedRequest {
+  meta: RollRequestMeta;
+  counts: DiceCounts;
+  bonus: number;
+  advantage: Advantage;
+}
 
 interface DiceControlsState {
   diceSet: DiceSet;
@@ -19,6 +28,8 @@ interface DiceControlsState {
   diceHidden: boolean;
   diceRollPressTime: number | null;
   fairnessTesterOpen: boolean;
+  stagedRequest: StagedRequest | null;
+  setStagedRequest: (staged: StagedRequest | null) => void;
   changeDiceSet: (diceSet: DiceSet) => void;
   resetDiceCounts: () => void;
   changeDieCount: (id: string, count: number) => void;
@@ -46,6 +57,12 @@ export const useDiceControlsStore = create<DiceControlsState>()(
     diceHidden: false,
     diceRollPressTime: null,
     fairnessTesterOpen: false,
+    stagedRequest: null,
+    setStagedRequest(staged) {
+      set((state) => {
+        state.stagedRequest = staged;
+      });
+    },
     changeDiceSet(diceSet) {
       set((state) => {
         const counts: DiceCounts = {};

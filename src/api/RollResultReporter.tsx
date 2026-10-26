@@ -1,0 +1,41 @@
+import { useEffect } from "react";
+import { useDiceRollStore } from "../dice/store";
+import { getDieFromDice } from "../helpers/getDieFromDice";
+import { getCombinedDiceValue } from "../helpers/getCombinedDiceValue";
+import { sendRollResult } from "./protocol";
+
+/**
+ * Sends `{source}/roll-result` when a requested roll in this frame's dice store
+ * comes to rest. Mounted wherever rolls are thrown (the panel and the popover).
+ */
+export function RollResultReporter() {
+  useEffect(() => {
+    const reported = new Set<string>();
+    return useDiceRollStore.subscribe((state) => {
+      const roll = state.roll;
+      const request = roll?.request;
+      if (!roll || !request || reported.has(request.rollId)) {
+        return;
+      }
+      const dice = getDieFromDice(roll);
+      const values = dice.map((die) => state.rollValues[die.id]);
+      if (values.length === 0 || values.some((value) => value === null || value === undefined)) {
+        return;
+      }
+      reported.add(request.rollId);
+      const finished = values as number[];
+      const byId: Record<string, number> = {};
+      dice.forEach((die, index) => (byId[die.id] = finished[index]));
+      sendRollResult(request.source, {
+        rollId: request.rollId,
+        label: request.label,
+        notation: request.notation,
+        values: finished,
+        total: getCombinedDiceValue(roll, byId),
+        hidden: !!roll.hidden,
+        modified: roll.modified,
+      });
+    });
+  }, []);
+  return null;
+}
