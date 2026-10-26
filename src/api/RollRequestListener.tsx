@@ -75,7 +75,11 @@ export function RollRequestListener() {
             return;
           }
         }
-        rollFromRequest(request, parsed);
+        try {
+          rollFromRequest(request, parsed);
+        } catch (e) {
+          sendRollError(request.source, request.rollId, (e as Error).message);
+        }
       }),
     []
   );

@@ -32,6 +32,7 @@
       <button data-n="3d7" data-l="Bad">Roll 3d7 (error)</button>
       <button id="ready">isReady?</button>
       <button id="toggle">Toggle dice panel</button>
+      <button id="testsheet">Toggle test sheet extension</button>
       <div id="log"></div>
     </div>
     <iframe id="popover" allowtransparency="true"></iframe>
@@ -143,6 +144,16 @@
       }
       document.getElementById("ready").onclick = () => deliverBroadcast("wayward-dice/isReady", { requestId: crypto.randomUUID(), timestamp: Date.now() });
       document.getElementById("toggle").onclick = () => setActionOpen(!actionOpen);
+      // The test sheet as its own extension iframe, talking only over broadcast
+      document.getElementById("testsheet").onclick = () => {
+        const existing = document.getElementById("testsheet-frame");
+        if (existing) { existing.remove(); frames.delete("testsheet"); subs.delete("testsheet"); return; }
+        const el = document.createElement("iframe");
+        el.id = "testsheet-frame";
+        el.style.cssText = "position:absolute;left:420px;top:16px;width:400px;height:520px;border:0;border-radius:8px";
+        document.body.appendChild(el);
+        mount("testsheet", el, "/test-sheet.html");
+      };
       window.fakeObr = { me, deliverBroadcast, setActionOpen, log };
 
       const bg = document.createElement("iframe");

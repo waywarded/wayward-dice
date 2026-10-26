@@ -1,10 +1,27 @@
 import { useDiceRollStore } from "../dice/store";
 import { useDiceControlsStore } from "../controls/store";
 import { getDiceFromNotation, ParsedNotation } from "./notation";
-import { RollRequest } from "./protocol";
+import { RollRequest, sendRollError } from "./protocol";
+
+/** A throw settles within 5 s; one still going after this is stuck (e.g. a frozen tab) */
+const STUCK_ROLL_MS = 15_000;
+let requestStartedAt = 0;
 
 /** Throw a request's dice through the dice roll store, as the Roll button does */
 export function rollFromRequest(request: RollRequest, parsed: ParsedNotation) {
+  // Replacing a requested roll mid-throw would leave its sender without an answer
+  const current = useDiceRollStore.getState();
+  const inFlight =
+    current.roll?.request &&
+    Object.values(current.rollValues).some((value) => value === null);
+  if (inFlight && current.roll?.request) {
+    if (performance.now() - requestStartedAt < STUCK_ROLL_MS) {
+      throw new Error("Roll in progress");
+    }
+    const stuck = current.roll.request;
+    sendRollError(stuck.source, stuck.rollId, "Roll timed out");
+  }
+  requestStartedAt = performance.now();
   const { diceSet } = useDiceControlsStore.getState();
   const style = diceSet.dice[0].style;
   useDiceRollStore.getState().startRoll({

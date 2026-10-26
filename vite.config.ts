@@ -15,6 +15,7 @@ export default defineConfig({
         main: resolve(__dirname, "index.html"),
         popover: resolve(__dirname, "popover.html"),
         background: resolve(__dirname, "background.html"),
+        testSheet: resolve(__dirname, "test-sheet.html"),
       },
     },
   },

@@ -1,0 +1,16 @@
+{
+  "name": "Wayward Dice test sheet",
+  "version": "0.1.0",
+  "manifest_version": 1,
+  "author": "Wayward Distractions",
+  "homepage_url": "https://github.com/waywarded/wayward-dice",
+  "icon": "/logo.png",
+  "description": "Developer test: sends roll requests to Wayward Dice through its broadcast API.",
+  "action": {
+    "title": "Wayward Dice test sheet",
+    "icon": "/icon.svg",
+    "popover": "/test-sheet.html",
+    "height": 520,
+    "width": 400
+  }
+}
